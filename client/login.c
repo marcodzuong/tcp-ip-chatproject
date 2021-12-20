@@ -2,7 +2,12 @@
 #include<stdlib.h>
 #include<string.h>
 #include"login.h"
-int loginFunc(){
+
+/**
+ * menu user muon dang nhap, dang ki, exit
+ * @return 1 -> login, 2 -> dang ki, 3 -> exit 
+ */
+int menuLogin(){
     int choice ;
     while (1){
         printf("1.Register\n");
