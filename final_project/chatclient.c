@@ -27,10 +27,9 @@
 #define BUFF_SIZE 8192
 
 /* In danh sách phòng */
-void showgroups(long lent, char *text);
+void displayListGroup(long lent, char *text);
 
-void showgroups1(long lent, char *text);
-
+/* in thong tin user name */
 void showUser1(char *text);
 
 int update(int sock);
@@ -743,17 +742,14 @@ int main(int argc, char *argv[])
 		}
 	}
 }
-void showgroups(long lent, char *text){
+void displayListGroup(long lent, char *text){
 	char *tptr,*a1,*length;
 	length=strtok(text,"/");
 	int length1=atoi(length);
 	tptr = text;
 	a1=text+strlen(text)+1;
-	// printf("%d",lent);
-	// printf("%s\n",a1);
 	printf("%18s %19s %19s\n", "Room's name", "Capacity", "Online");
-	for (int i=0;i<length1;i++)
-	{
+	for (int i=0;i<length1;i++){
 		char *name, *capa, *occu, *user;
 
 		name = strtok(NULL,"/");
@@ -762,39 +758,19 @@ void showgroups(long lent, char *text){
 		// tptr = capa + strlen(capa) + 1;
 		occu = strtok(NULL,"/");
 		// tptr = occu + strlen(occu) + 1;
-
 		printf("%15s %19s %19s\n", name, capa, occu);
 	}
 }
-void showgroups1(long lent, char *text)
-{
-	char *str;
 
-	// tptr = text;
-	// a1=text+strlen(text)+1;
-	// printf("%d",lent);
-	// printf("%s\n",a1);
-	printf("%18s\n","Room's name");
-	str = strtok(text,"/");
-	while (str!=NULL)
-	{
-		
-		printf("%18s\n", str);
-		str=strtok(NULL,"/");
-	}
-}
 
-void showUser1(char *text)
-{
+void showUser1(char *text){
 	char *tptr ;
 	int st;
 	tptr = text;
 	printf("%18s\n", "Username");
-	char *username,*status;
+	char *username;
 	username = strtok(text,"/");
-	while (username!=NULL)
-	{
-		
+	while (username!=NULL){
 		printf("%18s\n", username);
 		username=strtok(NULL,"/");
 	}
@@ -958,7 +934,7 @@ int sendListGr(int sock)
 	}
 
 	/* Hiển thị phòng chat */
-	showgroups(pkt->lent, pkt->text);
+	displayListGroup(pkt->lent, pkt->text);
 	return 1;
 }
 
@@ -991,7 +967,7 @@ int joinagroup(int sock)
 	}
 
 	/* Hiển thị phòng chat */
-	showgroups(pkt->lent, pkt->text);
+	displayListGroup(pkt->lent, pkt->text);
 	
 	/* Tên phòng chat */
 	printf("which group?\n ");
@@ -1250,7 +1226,7 @@ int sendRegister(int sock){
 	/* Nhan phan hoi tu server */
 	pkt = recvpkt(sock);
 	if (!pkt){
-		fprintf(stderr, "error: server died\n");
+		printfRed("\nSystem Error!!\n");
 		exit(1);
 	}
 	
@@ -1259,7 +1235,7 @@ int sendRegister(int sock){
 		printf("admin: %s\n", pkt->text);
 		free(username);
 		free(pass);
-		return (0);
+		return 0;
 	}else{
 		printf("%s!\n", pkt->text);
 		free(username);
