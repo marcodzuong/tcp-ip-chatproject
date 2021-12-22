@@ -25,7 +25,7 @@ int max=0;
 node *current[MAXLEN];
 void readFile()
 {
-	FILE *fp = fopen("a.txt", "r");
+	FILE *fp = fopen("account.txt", "r");
 	if (fp == NULL)
 	{
 		printf("Can't open the file!");

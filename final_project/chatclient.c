@@ -51,6 +51,7 @@ int join11(int sock);
 
 int login(int sock, int *check);
 
+/* dang ki tai khoan mk -> gui sever */
 int sendRegister(int sock);
 
 int sendToUser(int sock);
@@ -1206,44 +1207,38 @@ int login(int sock, int *check)
 	}
 }
 
-int sendRegister(int sock)
-{
+int sendRegister(int sock){
 	Packet *pkt;
 	char bufr[MAXNAMELEN];
 	char *bufrptr,*bufrptr1;
 	int bufrlen;
 	char *username, *pass;
-	printf("===Register===\n");
-	while (getchar() != '\n')
-		;
-	printf("Username: ");
+	printfYelloww("\n\n======Register=====\n\n");
+	while (getchar() != '\n');
+	printfRed("Username: ");
 	fgets(bufr, MAXPKTLEN, stdin);
-	bufr[strlen(bufr) - 1] = '\0';
-
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	bufr[strlen(bufr) - 1] = '\0'; /* loai bo dau xuong dong*/
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
+
 	bufrptr1 = strdup(bufr);
 	username = strdup(bufr);
-
-	//pass
-	printf("Password: ");
+	printfRed("Password: ");
 	fgets(bufr, MAXPKTLEN, stdin);
-	bufr[strlen(bufr) - 1] = '\0';
-
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	bufr[strlen(bufr) - 1] = '\0'; /* loai bo dau xuong dong*/
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
+
 	pass = strdup(bufr);
 	strcat(bufrptr1,"/");
-	strcat(bufrptr1, bufr);
-	// strcat(bufrptr1, pass);
-	printf("%s",bufrptr1);
-	/* Gửi tin nhắn */
+	strcat(bufrptr1, bufr); /*VD : "bachdv/123456"*/
+	printf("\n%s\n",bufrptr1);
+
+	/* Send thong diep */
 	bufrptr = bufr;
 	strcpy(bufrptr, username);
 	bufrptr += strlen(bufrptr) + 1;
@@ -1252,30 +1247,27 @@ int sendRegister(int sock)
 	bufrlen = bufrptr - bufr;
 	sendpkt(sock, REGISTER, bufrlen, bufrptr1);
 
-	/* Nhận phản hồi từ server */
+	/* Nhan phan hoi tu server */
 	pkt = recvpkt(sock);
-	if (!pkt)
-	{
+	if (!pkt){
 		fprintf(stderr, "error: server died\n");
 		exit(1);
 	}
 	
 	/*Error */
-	if (pkt->type == JOIN_REJECTED)
-	{
+	if (pkt->type == JOIN_REJECTED){
 		printf("admin: %s\n", pkt->text);
 		free(username);
 		free(pass);
 		return (0);
-	}
-	else
-	{
+	}else{
 		printf("%s!\n", pkt->text);
 		free(username);
 		free(pass);
 		return 1;
 	}
 }
+
 int sendToUser(int sock){
 	char name[MAXPKTLEN];
 	char content[MAXPKTLEN],txt[MAXPKTLEN];
