@@ -1,36 +1,35 @@
 #include <stdio.h>
+#include "utils.h"
+
+
+
 void menu(){
-	printf("\nUSER MANAGERMENT PROGRAM\n");
-	printf("-----------------------------------\n");
-	printf("1. Register\n");
-	printf("2. Sign in\n");
-	//printf("3. Sign out\n");
-	printf("3. Exit\n");
-	printf("Your choice (1-3):  ");
+	printfYelloww("\n\n=======USER MANAGERMENT PROGRAM======\n\n");
+	printfGreen("1. Register\n");
+	printfGreen("2. Sign in\n");
+	printfGreen("3. Exit\n");
+	printfRed("Your choice (1-3):  ");
 }
 
 void all_emotion(){
-	printf("\nStatus\n");
-	printf("-----------------------------------\n");
-	printf("1. Smile\n");
-	printf("2. Sad\n");
-	printf("3. Busy\n");
-	printf("4. Need_Chat\n");
-	printf("Your choice (1-4):  ");
+	printfYelloww("\n\n=======Status========\n\n");
+	printfGreen("1. Smile\n");
+	printfGreen("2. Sad\n");
+	printfGreen("3. Busy\n");
+	printfGreen("4. Need_Chat\n");
+	printfRed("Your choice (1-4):  ");
 }
 
 void chatFunction(){
-	printf("\nCHATROOM FUNCTION\n");
-	printf("-----------------------------------\n");
-	printf("0. List member Online\n");
-	printf("1. Create room\n");
-	printf("2. Get in room\n");
-	printf("3. List of rooms\n");
-	printf("4. Update status\n");
-	printf("5. Chat 1vs1\n");
-	printf("6. Sign Out\n");
-	printf("Your choice (1-6):\n");
-	//printf("a");
+	printfYelloww("\n\n===========CHATROOM FUNCTION===========\n\n");
+	printfGreen("0. List member Online\n");
+	printfGreen("1. Create room\n");
+	printfGreen("2. Get in room\n");
+	printfGreen("3. List of rooms\n");
+	printfGreen("4. Update status\n");
+	printfGreen("5. Chat 1vs1\n");
+	printfGreen("6. Sign Out\n");
+	printfRed("Your choice (1-6):\n");
 }
 
 void menuhelp(){

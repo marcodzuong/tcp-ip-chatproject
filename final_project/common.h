@@ -6,7 +6,7 @@
 #define MAXNAMELEN 256
 #define MAXPKTLEN  2048
 
-/*Định nghĩa 1 số biến*/
+/*dinh nghia cac giao thuc truyen thong*/
 #define LIST_GROUPS    0
 #define JOIN_GROUP     1
 #define LEAVE_GROUP    2
@@ -54,4 +54,5 @@ extern int hooktoserver();
 extern Packet *recvpkt(int sd);
 extern int sendpkt(int sd, char typ, long len, char *buf);
 extern void freepkt(Packet *msg);
+
 /*--------------------------------------------------------------------*/

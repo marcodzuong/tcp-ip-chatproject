@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include "common.h"
 #include "login.h"
+#include "utils.h"
+
 #define MAXLEN 100
 
 int max=0;
@@ -107,6 +109,322 @@ typedef struct _group
 /* Các phòng chat */
 Group group[1000];
 int ngroups; // So groups
+
+/*Tìm phòng theo tên */
+int findgroup(char *name);
+
+/* ͨTìm thông tin thành viên theo tên */
+Member *findmemberbyname(char *name);
+
+int grid1(char *name);
+
+/* ͨTìm thành viên thông qua socket */
+Member *findmemberbysock(int sock);
+
+/* Khởi tạo phòng chat */
+int initgroups();
+
+int listUserGr(int sock);
+
+int listOnline(int sock);
+
+/* Gửi tất cả thông tin phòng trò chuyện cho khách hàng */
+int listgroups(int sock);
+
+int processLogIn(int sock, char *username, char *pass);
+
+int processRegister(int sock, char *username, char *pass);
+
+int processCreatRoom(int sock, char *name, char *cap);
+
+int Update(int sock, char *status, char *username);
+
+int processLogout(int sock, char *username);
+
+/* Tham gia phòng chat */
+int joingroup(int sock, char *gname, char *username);
+
+int try(char *a);
+
+int try1(char *a);
+
+node *findnamebysock(int sock);
+
+int findbysock(int a);
+
+int findother(int a);
+
+int changeStatus(char *name);
+
+int join11(int sock, char *uname, char *username);
+
+int changeStatus1(int sock);
+
+int leave11(int sock);
+
+/* Rời khỏi phòng */
+int leavegroup(int sock);
+
+char *name(int sock);
+
+int kickuser(int sock, char *text);
+
+int sendApcept(int sock,char *text);
+
+int givemsg(int sock, char *text);
+
+int toUser(int sock, char *text);
+
+/* Gửi tin nhắn đên các thành viên khác trong phòng chat */
+int relaymsg(int sock, char *text);
+
+int repmenu(int sock, char *text);
+
+/*main*/
+int main(int argc, char *argv[])
+{
+	int servsock;			   /* Mô tả socket máy chủ */
+	int maxsd;				   /* Số máy tối đa cho phép kết nối đến socketֵ */
+	fd_set livesdset, tempset; /* Bộ thăm dò socket*/
+	//readFileRoom();
+	readFile();
+	//initgroups();
+	/*Check cú pháp */
+	if (argc != 2)
+	{
+		printf("Wrong syntax!!!\n--> Correct Syntax: ./server PortNumber\n");
+		return 0;
+	}
+
+	/* Khởi tạo thông tin phòng */
+	if (!initgroups())
+		exit(1);
+
+	/* Chức năng xử lí tín hiệu */
+	// signal(SIGTERM, cleanup);
+	// signal(SIGINT, cleanup);
+
+	/* Sẵn sàng nhận yêu cầu */
+	servsock = startserver(argv[1]); /*Đc xác định trong chatlinker.c, Hoàn thành socket, port, và chuyển socket sag listen */
+	if (servsock == -1)
+		exit(1);
+
+	/* Khởi tạo maxsd */
+	maxsd = servsock;
+
+	/* Khởi tạo bộ thăm dò */
+	FD_ZERO(&livesdset);		  /* Khởi tạo bộ thăm dò livesdset*/
+	FD_ZERO(&tempset);			  /* Khởi tạo bộ thăm dò tempset */
+	FD_SET(servsock, &livesdset); /*Thêm sercesock vào livesdset*/
+
+	/* Xử lý yêu cầu */
+	while (1)
+	{
+		int sock; /* vòng lặp */
+
+		tempset = livesdset;
+
+		/* Yêu cầu liên kết tới socket ms*/
+		select(maxsd + 1, &tempset, NULL, NULL, NULL);
+
+		/* vòng lặp */
+		for (sock = 3; sock <= maxsd; sock++)
+		{
+			/* Nếu máy chủ lắng nghe ổ cắm, nó sẽ nhảy ra khỏi gói nhận và thực hiện kết nối chấp nhận */
+			if (sock == servsock)
+				continue;
+
+			/* Có một tin nhắn từ socket máy khách */
+			if (FD_ISSET(sock, &tempset))
+			{
+				Packet *pkt;
+
+				/* Đọc tin nhắn */
+				pkt = recvpkt(sock); /* Hàm recvpkt được định nghĩa trong "chatlinker.c" */
+
+				if (!pkt)
+				{
+					/* Máy khách bị ngắt kết nố */
+					char *clientname; /* Tên máy khách */
+
+					/* Sử dụng hàm gethostbyaddr, getpeername để lấy tên máy khách */
+					socklen_t len;
+					struct sockaddr_in addr;
+					len = sizeof(addr);
+					if (getpeername(sock, (struct sockaddr *)&addr, &len) == 0)
+					{
+						struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+						struct hostent *he;
+						he = gethostbyaddr(&s->sin_addr, sizeof(struct in_addr), AF_INET);
+						clientname = he->h_name;
+					}
+					else
+						printf("Cannot get peer name/n");
+
+					printf("admin: disconnect from '%s' at '%d'\n",
+						   clientname, sock);
+
+					/* Xóa thành viên khỏi phòng trò chuyện */
+					leavegroup(sock);
+
+					close(sock);
+
+					/* Xóa sock khỏi bộ thăm dò livesdset */
+					FD_CLR(sock, &livesdset);
+				}
+				else
+				{
+					//CHEN LOGIN VAO DAY
+
+					char *gname, *mname, *username, *pass, *name, *uname, *status;
+					char *cap;
+					/* loại hành động */
+				
+					switch (pkt->type)
+					{
+						
+					case REGISTER:
+					
+						username = strtok(pkt->text, "/");
+						pass = strtok(NULL,"/");
+						processRegister(sock, username, pass);
+						break;
+					case CREAT_ROOM:
+						
+						name=strtok(pkt->text, "/");
+						cap= strtok(NULL,"/");
+						// name = pkt->text;
+						// cap = name + strlen(name) + 1;
+						processCreatRoom(sock, name, cap);
+						break;
+					case UPDATE:
+						printf("a");
+						name = pkt->text;
+						Update(sock, name, current[sock]->username);
+						break;
+					case LOG_IN:
+						
+						
+						username = strtok(pkt->text, "/");
+						pass = strtok(NULL,"/");
+						// username = pkt->text;
+						// pass = username + strlen(username) + 1;
+						// printf("%s",pass);
+						processLogIn(sock, username, pass);
+						break;
+					case LOG_OUT:
+						
+						username = pkt->text;
+						processLogout(sock, username);
+						break;
+					case JOIN_2:
+						username = pkt->text;
+						
+						join11(sock,username, current[sock]->username);
+						// freepkt(pkt);
+						break;
+					case LIST_GROUPS:
+						
+						listgroups(sock);
+						break;
+					case JOIN_GROUP:
+					
+						gname = pkt->text;
+						joingroup(sock, gname, current[sock]->username);
+						break;
+					case LISTUSERON:
+						
+						listOnline(sock);
+						break;
+					case LIST_USERGR:
+						
+						listUserGr(sock);
+						break;
+					case LEAVE_GROUP:
+						leavegroup(sock);
+						break;
+					case TO:
+						
+						toUser(sock, pkt->text);
+						break;
+					case USER_TEXT:
+						
+						relaymsg(sock, pkt->text);
+						break;
+					case MENU:
+						repmenu(sock,pkt->text);
+						break;
+					case USER_TEXT1:
+						
+						givemsg(sock,pkt->text);
+						break;
+					case QUIT:
+						leave11(sock);
+						break;
+					case REQUEST1:
+						
+						sendApcept(sock,pkt->text);
+						break;
+					case KICK:
+						
+						kickuser(sock,pkt->text);
+						break;
+					}
+					
+					
+
+					/*Cấu trúc gói phát hành */
+					freepkt(pkt);
+				}
+			}
+		}
+
+		struct sockaddr_in remoteaddr; /* cấu trúc địa chỉ máy khách */
+		socklen_t addrlen;
+
+		/* CÓ một y/c từ 1 user mới */
+		if (FD_ISSET(servsock, &tempset))
+		{
+			int csd; /*mô tả socket được kết nối */
+
+			/* Chấp nhận yêu cầu kết nối mới */
+			addrlen = sizeof remoteaddr;
+			csd = accept(servsock, (struct sockaddr *)&remoteaddr, &addrlen);
+
+			/* Kết nối thành công */
+			if (csd != -1)
+			{
+				char *clientname;
+
+				/* Nhận tên máy chủ của khách hàng bằng cách sử dụng chức năng gethostbyaddr*/
+				struct hostent *h;
+				h = gethostbyaddr((char *)&remoteaddr.sin_addr.s_addr,
+								  sizeof(struct in_addr), AF_INET);
+
+				if (h != (struct hostent *)0)
+					clientname = h->h_name;
+				else
+					printf("gethostbyaddr failed\n");
+
+				/* Hiển thị tên máy chủ của máy khách và bộ mô tả ổ cắm tương ứng  */
+				printf("admin: connect from '%s' at '%d'\n",
+					   clientname, csd);
+
+				/*Thêm csd vào livesdset */
+				FD_SET(csd, &livesdset);
+
+				/*maxsd: Socket lớn nhất */
+				if (csd > maxsd)
+					maxsd = csd;
+			}
+			else
+			{
+				perror("accept");
+				exit(0);
+			}
+		}
+	}
+}
 
 /*Tìm phòng theo tên */
 int findgroup(char *name)
@@ -965,250 +1283,4 @@ int relaymsg(int sock, char *text)
 int repmenu(int sock, char *text){
 	sendpkt(sock,MENU,strlen(text),text);
 	return (1);
-}
-
-/*main*/
-int main(int argc, char *argv[])
-{
-	int servsock;			   /* Mô tả socket máy chủ */
-	int maxsd;				   /* Số máy tối đa cho phép kết nối đến socketֵ */
-	fd_set livesdset, tempset; /* Bộ thăm dò socket*/
-	//readFileRoom();
-	readFile();
-	//initgroups();
-	/*Check cú pháp */
-	if (argc != 2)
-	{
-		printf("Wrong syntax!!!\n--> Correct Syntax: ./server PortNumber\n");
-		return 0;
-	}
-
-	/* Khởi tạo thông tin phòng */
-	if (!initgroups())
-		exit(1);
-
-	/* Chức năng xử lí tín hiệu */
-	// signal(SIGTERM, cleanup);
-	// signal(SIGINT, cleanup);
-
-	/* Sẵn sàng nhận yêu cầu */
-	servsock = startserver(argv[1]); /*Đc xác định trong chatlinker.c, Hoàn thành socket, port, và chuyển socket sag listen */
-	if (servsock == -1)
-		exit(1);
-
-	/* Khởi tạo maxsd */
-	maxsd = servsock;
-
-	/* Khởi tạo bộ thăm dò */
-	FD_ZERO(&livesdset);		  /* Khởi tạo bộ thăm dò livesdset*/
-	FD_ZERO(&tempset);			  /* Khởi tạo bộ thăm dò tempset */
-	FD_SET(servsock, &livesdset); /*Thêm sercesock vào livesdset*/
-
-	/* Xử lý yêu cầu */
-	while (1)
-	{
-		int sock; /* vòng lặp */
-
-		tempset = livesdset;
-
-		/* Yêu cầu liên kết tới socket ms*/
-		select(maxsd + 1, &tempset, NULL, NULL, NULL);
-
-		/* vòng lặp */
-		for (sock = 3; sock <= maxsd; sock++)
-		{
-			/* Nếu máy chủ lắng nghe ổ cắm, nó sẽ nhảy ra khỏi gói nhận và thực hiện kết nối chấp nhận */
-			if (sock == servsock)
-				continue;
-
-			/* Có một tin nhắn từ socket máy khách */
-			if (FD_ISSET(sock, &tempset))
-			{
-				Packet *pkt;
-
-				/* Đọc tin nhắn */
-				pkt = recvpkt(sock); /* Hàm recvpkt được định nghĩa trong "chatlinker.c" */
-
-				if (!pkt)
-				{
-					/* Máy khách bị ngắt kết nố */
-					char *clientname; /* Tên máy khách */
-
-					/* Sử dụng hàm gethostbyaddr, getpeername để lấy tên máy khách */
-					socklen_t len;
-					struct sockaddr_in addr;
-					len = sizeof(addr);
-					if (getpeername(sock, (struct sockaddr *)&addr, &len) == 0)
-					{
-						struct sockaddr_in *s = (struct sockaddr_in *)&addr;
-						struct hostent *he;
-						he = gethostbyaddr(&s->sin_addr, sizeof(struct in_addr), AF_INET);
-						clientname = he->h_name;
-					}
-					else
-						printf("Cannot get peer name/n");
-
-					printf("admin: disconnect from '%s' at '%d'\n",
-						   clientname, sock);
-
-					/* Xóa thành viên khỏi phòng trò chuyện */
-					leavegroup(sock);
-
-					close(sock);
-
-					/* Xóa sock khỏi bộ thăm dò livesdset */
-					FD_CLR(sock, &livesdset);
-				}
-				else
-				{
-					//CHEN LOGIN VAO DAY
-
-					char *gname, *mname, *username, *pass, *name, *uname, *status;
-					char *cap;
-					/* loại hành động */
-				
-					switch (pkt->type)
-					{
-						
-					case REGISTER:
-					
-						username = strtok(pkt->text, "/");
-						pass = strtok(NULL,"/");
-						processRegister(sock, username, pass);
-						break;
-					case CREAT_ROOM:
-						
-						name=strtok(pkt->text, "/");
-						cap= strtok(NULL,"/");
-						// name = pkt->text;
-						// cap = name + strlen(name) + 1;
-						processCreatRoom(sock, name, cap);
-						break;
-					case UPDATE:
-						printf("a");
-						name = pkt->text;
-						Update(sock, name, current[sock]->username);
-						break;
-					case LOG_IN:
-						
-						
-						username = strtok(pkt->text, "/");
-						pass = strtok(NULL,"/");
-						// username = pkt->text;
-						// pass = username + strlen(username) + 1;
-						// printf("%s",pass);
-						processLogIn(sock, username, pass);
-						break;
-					case LOG_OUT:
-						
-						username = pkt->text;
-						processLogout(sock, username);
-						break;
-					case JOIN_2:
-						username = pkt->text;
-						
-						join11(sock,username, current[sock]->username);
-						// freepkt(pkt);
-						break;
-					case LIST_GROUPS:
-						
-						listgroups(sock);
-						break;
-					case JOIN_GROUP:
-					
-						gname = pkt->text;
-						joingroup(sock, gname, current[sock]->username);
-						break;
-					case LISTUSERON:
-						
-						listOnline(sock);
-						break;
-					case LIST_USERGR:
-						
-						listUserGr(sock);
-						break;
-					case LEAVE_GROUP:
-						leavegroup(sock);
-						break;
-					case TO:
-						
-						toUser(sock, pkt->text);
-						break;
-					case USER_TEXT:
-						
-						relaymsg(sock, pkt->text);
-						break;
-					case MENU:
-						repmenu(sock,pkt->text);
-						break;
-					case USER_TEXT1:
-						
-						givemsg(sock,pkt->text);
-						break;
-					case QUIT:
-						leave11(sock);
-						break;
-					case REQUEST1:
-						
-						sendApcept(sock,pkt->text);
-						break;
-					case KICK:
-						
-						kickuser(sock,pkt->text);
-						break;
-					}
-					
-					
-
-					/*Cấu trúc gói phát hành */
-					freepkt(pkt);
-				}
-			}
-		}
-
-		struct sockaddr_in remoteaddr; /* cấu trúc địa chỉ máy khách */
-		socklen_t addrlen;
-
-		/* CÓ một y/c từ 1 user mới */
-		if (FD_ISSET(servsock, &tempset))
-		{
-			int csd; /*mô tả socket được kết nối */
-
-			/* Chấp nhận yêu cầu kết nối mới */
-			addrlen = sizeof remoteaddr;
-			csd = accept(servsock, (struct sockaddr *)&remoteaddr, &addrlen);
-
-			/* Kết nối thành công */
-			if (csd != -1)
-			{
-				char *clientname;
-
-				/* Nhận tên máy chủ của khách hàng bằng cách sử dụng chức năng gethostbyaddr*/
-				struct hostent *h;
-				h = gethostbyaddr((char *)&remoteaddr.sin_addr.s_addr,
-								  sizeof(struct in_addr), AF_INET);
-
-				if (h != (struct hostent *)0)
-					clientname = h->h_name;
-				else
-					printf("gethostbyaddr failed\n");
-
-				/* Hiển thị tên máy chủ của máy khách và bộ mô tả ổ cắm tương ứng  */
-				printf("admin: connect from '%s' at '%d'\n",
-					   clientname, csd);
-
-				/*Thêm csd vào livesdset */
-				FD_SET(csd, &livesdset);
-
-				/*maxsd: Socket lớn nhất */
-				if (csd > maxsd)
-					maxsd = csd;
-			}
-			else
-			{
-				perror("accept");
-				exit(0);
-			}
-		}
-	}
 }
