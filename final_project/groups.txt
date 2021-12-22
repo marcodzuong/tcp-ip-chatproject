@@ -1,0 +1,15 @@
+14
+bach_va_nhung_ng_ban hanoi bachdv
+hq 4 a
+haha 4 a
+abcd 8 a
+c 10 b
+b 6 c
+quynh123 3 a
+quynh 2 c
+hoanganh 2 c
+a 5 a
+d 5 c
+asd 5 a
+hqhq 2 a
+LTM 3 nguyenphuong
