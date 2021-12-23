@@ -43,6 +43,10 @@ node *checkExist(char* user){ // xem ten account co trong danh sach lien ket chu
 }
 
 node1 *checkExistRoom(char* name){ // xem ten room co trong danh sach lien ket chua??
+	if (head1==NULL){
+		return NULL;
+	}
+	
 	node1 *temp1 = head1;
 	if(strcmp(temp1->name, name)==0){
 		return temp1;
