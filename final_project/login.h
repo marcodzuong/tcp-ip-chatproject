@@ -2,7 +2,7 @@
 #define __LOGIN_H__
 #define BUFF_SIZE 8192
 
-/* 1 node la 1 account */
+/* 1 node la 1 account -> check authen */
 typedef struct Node{
 	char username[30];
 	char pass[30];
@@ -13,7 +13,7 @@ typedef struct Node{
 	char status2[30];
 	struct Node *next;
 } node;
-
+/* la 1 user info trong room */
 typedef struct Node1{
 	char name[30];
 	char cap[10];
