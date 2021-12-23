@@ -23,8 +23,8 @@
 
 int max=0;
 node *current[MAXLEN];
-void readFile()
-{
+
+void readFile(){
 	FILE *fp = fopen("a.txt", "r");
 	if (fp == NULL)
 	{
@@ -44,9 +44,7 @@ void readFile()
 }
 
 
-
-void writeData(char *user, char *data)
-{
+void writeData(char *user, char *data){
 	char filename[50];
 	strcpy(filename, user);
 	strcat(filename, ".txt");
@@ -55,8 +53,7 @@ void writeData(char *user, char *data)
 	fclose(fp);
 }
 /* Thông tin thành viên trong nhóm*/
-typedef struct _member
-{
+typedef struct _member{
 	/* Tên thành viên */
 	char *name;
 
@@ -75,8 +72,7 @@ typedef struct _member
 } Member;
 
 /*Thông tin phòng chat */
-typedef struct _group11
-{
+typedef struct _group11{
 	/* Tên phòng */
 	int sock1;
 	int sock2;
@@ -86,8 +82,7 @@ typedef struct _group11
 Group11 *chat11[MAXPKTLEN];
 int sl = 1;
 
-typedef struct _group
-{
+typedef struct _group{
 	/* Tên phòng */
 	char *name;
 
@@ -108,41 +103,50 @@ typedef struct _group
 
 /* Các phòng chat */
 Group group[1000];
-int ngroups; // So groups
 
-/*Tìm phòng theo tên */
-int findgroup(char *name);
+/* room count */
+int roomCount; 
 
-/* ͨTìm thông tin thành viên theo tên */
-Member *findmemberbyname(char *name);
+/*find room by name */
+int findRoomByName(char *name);
+
+/* ͨfind user by name */
+Member *findUserByName(char *name);
 
 int grid1(char *name);
 
-/* ͨTìm thành viên thông qua socket */
-Member *findmemberbysock(int sock);
+/* find user by socket */
+Member *findUserBySocket(int sock);
 
-/* Khởi tạo phòng chat */
-int initgroups();
+/* init room */
+int initChatRooms();
 
-int listUserGr(int sock);
+/* get list user in room  */
+int getListUserInRoom(int sock);
 
-int listOnline(int sock);
+/* get list user online */
+int getListUserOnline(int sock);
 
-/* Gửi tất cả thông tin phòng trò chuyện cho khách hàng */
-int listgroups(int sock);
+/* get list room chat -> send to client */
+int getListRoomChat(int sock);
 
+/* xu li login */
 int processLogIn(int sock, char *username, char *pass);
 
+/*xu li dang ki*/
 int processRegister(int sock, char *username, char *pass);
 
+/*tao room */
 int processCreatRoom(int sock, char *name, char *cap);
 
-int Update(int sock, char *status, char *username);
+/*update status cua user*/
+int update(int sock, char *status, char *username);
 
+/*xu li logout */
 int processLogout(int sock, char *username);
 
-/* Tham gia phòng chat */
-int joingroup(int sock, char *gname, char *username);
+/* join room  */
+int joinRoomChat(int sock, char *gname, char *username);
 
 int try(char *a);
 
@@ -181,23 +185,17 @@ int relaymsg(int sock, char *text);
 int repmenu(int sock, char *text);
 
 /*main*/
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
 	int servsock;			   /* Mô tả socket máy chủ */
 	int maxsd;				   /* Số máy tối đa cho phép kết nối đến socketֵ */
 	fd_set livesdset, tempset; /* Bộ thăm dò socket*/
-	//readFileRoom();
-	readFile();
-	//initgroups();
-	/*Check cú pháp */
-	if (argc != 2)
-	{
+	readFile();	
+	if (argc != 2){
 		printf("Wrong syntax!!!\n--> Correct Syntax: ./server PortNumber\n");
 		return 0;
 	}
-
 	/* Khởi tạo thông tin phòng */
-	if (!initgroups())
+	if (!initChatRooms())
 		exit(1);
 
 	/* Chức năng xử lí tín hiệu */
@@ -300,7 +298,7 @@ int main(int argc, char *argv[])
 					case UPDATE:
 						printf("a");
 						name = pkt->text;
-						Update(sock, name, current[sock]->username);
+						update(sock, name, current[sock]->username);
 						break;
 					case LOG_IN:
 						
@@ -325,20 +323,20 @@ int main(int argc, char *argv[])
 						break;
 					case LIST_GROUPS:
 						
-						listgroups(sock);
+						getListRoomChat(sock);
 						break;
 					case JOIN_GROUP:
 					
 						gname = pkt->text;
-						joingroup(sock, gname, current[sock]->username);
+						joinRoomChat(sock, gname, current[sock]->username);
 						break;
 					case LISTUSERON:
 						
-						listOnline(sock);
+						getListUserOnline(sock);
 						break;
 					case LIST_USERGR:
 						
-						listUserGr(sock);
+						getListUserInRoom(sock);
 						break;
 					case LEAVE_GROUP:
 						leavegroup(sock);
@@ -426,12 +424,11 @@ int main(int argc, char *argv[])
 	}
 }
 
-/*Tìm phòng theo tên */
-int findgroup(char *name)
-{
+
+int findRoomByName(char *name){
 	int grid; /* ID phòng trò chuyện */
 
-	for (grid = 0; grid < ngroups; grid++)
+	for (grid = 0; grid < roomCount; grid++)
 	{
 		if (strcmp(group[grid].name, name) == 0)
 			return (grid);
@@ -452,13 +449,11 @@ int findname(char*name){
 	return m;
 }
 
-/* ͨTìm thông tin thành viên theo tên */
-Member *findmemberbyname(char *name)
-{
-	int grid; /* ID phòng*/
 
+Member *findUserByName(char *name){
+	int grid; /* ID phòng*/
 	/*Vòng lặp tất cả các nhóm */
-	for (grid = 0; grid < ngroups; grid++)
+	for (grid = 0; grid < roomCount; grid++)
 	{
 		Member *memb;
 
@@ -476,7 +471,7 @@ int grid1(char *name)
 	int grid; /* ID phòng*/
 
 	/*Vòng lặp tất cả các nhóm */
-	for (grid = 0; grid < ngroups; grid++)
+	for (grid = 0; grid < roomCount; grid++)
 	{
 		Member *memb;
 
@@ -490,13 +485,11 @@ int grid1(char *name)
 	return (NULL);
 }
 
-/* ͨTìm thành viên thông qua socket */
-Member *findmemberbysock(int sock)
-{
+Member *findUserBySocket(int sock){
 	int grid; /*ID phòng*/
 
 	/* Duyệt tất cả các phòng */
-	for (grid = 0; grid < ngroups; grid++)
+	for (grid = 0; grid < roomCount; grid++)
 	{
 		Member *memb;
 
@@ -510,9 +503,7 @@ Member *findmemberbysock(int sock)
 	return (NULL);
 }
 
-/* Khởi tạo phòng chat */
-int initgroups()
-{
+int initChatRooms(){
 	FILE *fp;
 	char name[MAXNAMELEN];
 	char admin[MAXNAMELEN];
@@ -529,10 +520,10 @@ int initgroups()
 	}
 
 	/* Số lượng phòng */
-	fscanf(fp, "%d", &ngroups);
+	fscanf(fp, "%d", &roomCount);
 
 	/* Phân bổ bộ nhớ cho các phongf */
-	//group = (Group *) calloc(ngroups, sizeof(Group));
+	//group = (Group *) calloc(roomCount, sizeof(Group));
 	if (!group)
 	{
 		printf("error : unable to calloc\n");
@@ -540,7 +531,7 @@ int initgroups()
 	}
 
 	/*Thông tin phòng trò chuyeẹn từ file */
-	for (grid = 0; grid < ngroups; grid++)
+	for (grid = 0; grid < roomCount; grid++)
 	{
 		/* Tên phòng và số ng tối đa */
 		if (fscanf(fp, "%s %d %s", name, &capa, admin) != 3)
@@ -560,7 +551,7 @@ int initgroups()
 	}
 	return (1);
 }
-int listUserGr(int sock)
+int getListUserInRoom(int sock)
 {
 
 	Member *memb;
@@ -572,7 +563,7 @@ int listUserGr(int sock)
 	//char m[MAXLEN];
 	node *temp;
 	/* Nhận thông tin của thành viên qua socket */
-	sender = findmemberbysock(sock);
+	sender = findUserBySocket(sock);
 	int id=grid1(sender->name);
 	// printf("%d %d",id,sock);
 	for (memb = group[id].mems; memb; memb = memb->next)
@@ -609,7 +600,7 @@ int listUserGr(int sock)
 	sendpkt(sock, LIST_USERGR, strlen(bufrptr1)+1, bufrptr1);
 	return (1);
 }
-int listOnline(int sock)
+int getListUserOnline(int sock)
 {
 
 	char pktbufr[MAXPKTLEN];
@@ -655,9 +646,7 @@ int listOnline(int sock)
 	return (1);
 }
 
-/* Gửi tất cả thông tin phòng trò chuyện cho khách hàng */
-int listgroups(int sock)
-{
+int getListRoomChat(int sock){
 	int grid,i;
 	char pktbufr[MAXPKTLEN];
 	char *bufrptr,bufrptr1[MAXPKTLEN],length[MAXPKTLEN];
@@ -665,11 +654,10 @@ int listgroups(int sock)
 
 	/* Mỗi phần thông tin được phân tách bằng NULL trong chuỗi */
 	bufrptr = pktbufr;
-	sprintf (length, "%d",ngroups);
+	sprintf (length, "%d",roomCount);
 	strcpy(bufrptr1,length);
 	// strcat(bufrptr1,"/");
-	//initgroups();
-	for (grid = 0; grid < ngroups; grid++)
+	for (grid = 0; grid < roomCount; grid++)
 	{
 		// printf("%s",group[grid].name);
 		// if (grid==0){
@@ -785,23 +773,23 @@ int processCreatRoom(int sock, char *name, char *cap)
 	}
 	addNodeRoom(name, cap,current[sock]->username);
 
-	writeRoomFile(ngroups + 1);
-	//printf("%d\n",ngroups);
-	ngroups++;
+	writeRoomFile(roomCount + 1);
+	//printf("%d\n",roomCount);
+	roomCount++;
 	//group = realloc(group, 1 * sizeof(int));
-	group[ngroups - 1].name = strdup(name);
-	group[ngroups - 1].capa = atoi(cap);
-	group[ngroups - 1].occu = 0;
-	group[ngroups - 1].admin = strdup(current[sock]->username);
-	group[ngroups - 1].mems = NULL;
+	group[roomCount - 1].name = strdup(name);
+	group[roomCount - 1].capa = atoi(cap);
+	group[roomCount - 1].occu = 0;
+	group[roomCount - 1].admin = strdup(current[sock]->username);
+	group[roomCount - 1].mems = NULL;
 
-	//printf("%s\n",group[ngroups-1].name);
+	//printf("%s\n",group[roomCount-1].name);
 	char *succmsg = "Create successful!\n";
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 	return 1;
 }
 
-int Update(int sock, char *status, char *username)
+int update(int sock, char *status, char *username)
 {
 	/*node *temp;
 	while (temp != NULL)
@@ -815,7 +803,7 @@ int Update(int sock, char *status, char *username)
 	strcpy(current[sock]->status2,status);
 	writeFile();
 
-	//printf("%s\n",group[ngroups-1].name);
+	//printf("%s\n",group[roomCount-1].name);
 	char *succmsg = "Update successful!\n";
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 	return 1;
@@ -850,14 +838,12 @@ int processLogout(int sock, char *username)
 	return 1;
 }
 
-/* Tham gia phòng chat */
-int joingroup(int sock, char *gname, char *username)
-{
+int joinRoomChat(int sock, char *gname, char *username){
 	int grid,gridCr;
 	Member *memb;
 
 	/*  Nhận ID phòng trò chuyện dựa trên tên phòng trò chuyện  */
-	grid = findgroup(gname);
+	grid = findRoomByName(gname);
 	if (grid == -1)
 	{
 		char *errmsg = "This group doesn't exist!";
@@ -871,7 +857,7 @@ int joingroup(int sock, char *gname, char *username)
 		leavegroup(sock);
 	// }
 	/* Kiểm tra xem tên thành viên có bị trùng k? */
-	memb = findmemberbyname(username);
+	memb = findUserByName(username);
 
 	/* Nếu tên thành viên trò chuyện đã tồn tại, trả về thông báo lỗi */
 	// if (memb)
@@ -1051,7 +1037,7 @@ int leavegroup(int sock)
 	node *temp;
 	/* Nhận thông tin thành viên phòng chat */
 	temp = findnamebysock(sock);
-	memb = findmemberbysock(sock);
+	memb = findUserBySocket(sock);
 	if (!memb)
 		return (0);
 
@@ -1098,7 +1084,7 @@ int kickuser(int sock, char *text){
 	// //char m[MAXLEN];
 	node *temp;
 	/* Nhận thông tin của thành viên qua socket */
-	sender = findmemberbysock(sock);
+	sender = findUserBySocket(sock);
 	temp = findnamebysock(sock);
 	if (!sender)
 	{
@@ -1197,7 +1183,7 @@ int toUser(int sock, char *text)
 	
 	node *temp;
 	/* Nhận thông tin của thành viên qua socket */
-	sender = findmemberbysock(sock);
+	sender = findUserBySocket(sock);
 	temp = findnamebysock(sock);
 	if (!sender)
 	{
@@ -1247,7 +1233,7 @@ int relaymsg(int sock, char *text)
 	//char m[MAXLEN];
 	node *temp;
 	/* Nhận thông tin của thành viên qua socket */
-	sender = findmemberbysock(sock);
+	sender = findUserBySocket(sock);
 	temp = findnamebysock(sock);
 	if (!sender)
 	{

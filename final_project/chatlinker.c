@@ -81,8 +81,7 @@ int startserver(char *port){
   Thất bại trả về  -1
 */
 int hooktoserver(char* port, char* addr){
-	int sd;                 
-
+  int sd;                 
 	/*
 	Gọi socket để tạo kết nối TCP
 	*/
@@ -90,7 +89,7 @@ int hooktoserver(char* port, char* addr){
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 	
 	/*
-Gọi gethostbyname () và connect () để kết nối với cổng 'servport' của 'servhost'
+  Gọi gethostbyname () và connect () để kết nối với cổng 'servport' của 'servhost'
 	*/
 	struct hostent *hostinfo;
 	struct sockaddr_in address; // thong tin dia chi server
