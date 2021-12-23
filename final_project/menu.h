@@ -1,9 +1,9 @@
 #ifndef __MENU_H__
 #define __MENU_H__
 
-void menu();
-void allEmotion();
-void chatroomFunction();
-void menuhelp();
+void printfMenu();
+void printfAllEmotion();
+void printfChatMenuFunction();
+void printfMenuHelp();
 
 #endif

@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 	char choice[100] = " ";
 	while (1){
 		/*Menu login/logout */
-		menu();
+		printfMenu();
 		// char choice=' ';
 		strcpy(choice, " ");
 		__fpurge(stdin);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
 			if (!login(sock, check)){
 				continue;
 			}
-			chatFunction();
+			printfChatMenuFunction();
 			do{
 				__fpurge(stdin);
 				tempfds = clientfds;
@@ -218,9 +218,9 @@ int main(int argc, char *argv[]){
 								}
 							}	
 						} else {
-							// chatFunction();
+							
 						}
-						chatFunction();
+						printfChatMenuFunction();
 							// break;
 					}else if (pkt1->type == MENU){
 						choiceFunc = atoi(pkt1->text);
@@ -327,9 +327,9 @@ int main(int argc, char *argv[]){
 														}
 													}	
 												} else {
-													// chatFunction();
+													
 												}
-												// chatFunction();
+											
 												// break;
 											}
 
@@ -385,7 +385,7 @@ int main(int argc, char *argv[]){
 												break;
 											};
 										}else if (strncmp(bufr, HELP, strlen(HELP)) == 0){
-											menuhelp();
+											printfMenuHelp();
 											// break;
 										} else {
 											sendpkt(sock, USER_TEXT, strlen(bufr) + 1, bufr);
@@ -399,7 +399,7 @@ int main(int argc, char *argv[]){
 							/* Tham gia trò chuyện */
 							{
 								if (!joinRoomChat(sock)){
-									chatFunction();
+									printfChatMenuFunction();
 									continue;
 								}
 
@@ -512,9 +512,9 @@ int main(int argc, char *argv[]){
 														}
 													}	
 												} else {
-													// chatFunction();
+													
 												}
-												// chatFunction();
+												
 												// break;
 											}
 
@@ -586,7 +586,7 @@ int main(int argc, char *argv[]){
 										}else 
 										if (strncmp(bufr, HELP, strlen(HELP)) == 0)
 										{
-											menuhelp();
+											printfMenuHelp();
 											// break;
 										} else {
 											sendpkt(sock, USER_TEXT, strlen(bufr) + 1, bufr);
@@ -670,7 +670,7 @@ int main(int argc, char *argv[]){
 								break;
 						}
 						if(choiceFunc!=6) {
-							chatFunction();
+							printfChatMenuFunction();
 						}
 					}
 					freepkt(pkt1);
@@ -729,7 +729,7 @@ int update(int sock){
 	printfYelloww("\n\n=======UPDATE======\n\n");
 	while (getchar() != '\n');
 	do{
-		allEmotion();
+		printfAllEmotion();
 		fgets(bufr, MAXPKTLEN, stdin);
 	} while (atoi(bufr) > 4 || atoi(bufr) < 1);
 

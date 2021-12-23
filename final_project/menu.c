@@ -3,7 +3,7 @@
 
 
 
-void menu(){
+void printfMenu(){
 	printfYelloww("\n\n=======USER MANAGERMENT PROGRAM======\n\n");
 	printfGreen("1. Register\n");
 	printfGreen("2. Sign in\n");
@@ -11,7 +11,7 @@ void menu(){
 	printfRed("Your choice (1-3):  ");
 }
 
-void allEmotion(){
+void printfAllEmotion(){
 	printfYelloww("\n\n=======Status========\n\n");
 	printfGreen("1. Smile\n");
 	printfGreen("2. Sad\n");
@@ -20,7 +20,7 @@ void allEmotion(){
 	printfRed("Your choice (1-4):  ");
 }
 
-void chatFunction(){
+void printfChatMenuFunction(){
 	printfYelloww("\n\n===========CHATROOM FUNCTION===========\n\n");
 	printfGreen("0. List member Online\n");
 	printfGreen("1. Create room\n");
@@ -32,7 +32,7 @@ void chatFunction(){
 	printfRed("Your choice (1-6):\n");
 }
 
-void menuhelp(){
+void printfMenuHelp(){
 	printf("/createroom : Create room\n");
 	printf("/getroom : Get in room\n");
 	printf("/listroom : List of rooms\n");
