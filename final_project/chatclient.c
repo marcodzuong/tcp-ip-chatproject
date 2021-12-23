@@ -796,14 +796,12 @@ int kickUser(int sock){
 	/* Nhận phản hồi từ phòng chat */
 	pkt = recvpkt(sock);
 	
-	if (!pkt)
-	{
+	if (!pkt){
 		printf("error: server died\n");
 		exit(1);
 	}
 
-	if (pkt->type != LIST_USERGR)
-	{
+	if (pkt->type != LIST_USERGR){
 		fprintf(stderr, "error: unexpected reply from server3\n");
 		exit(1);
 	}
