@@ -20,8 +20,7 @@
    Trả lại chính xác mô tả tập tin ổ cắm
    Lỗi trả về -1
 */
-int startserver(char *port)
-{
+int startserver(char *port){
   int     sd;      /* socket mô tả */
   int     myport;  /* Cổng máy chủ */
   const char *  myname;  /* Tên đầy đủ của localhosst  */
@@ -81,8 +80,7 @@ int startserver(char *port)
   Kết nối đến máy chủ, trả về socket đúng.
   Thất bại trả về  -1
 */
-int hooktoserver(char* port, char* addr)
-{
+int hooktoserver(char* port, char* addr){
 	int sd;                 
 
 	/*
@@ -102,8 +100,7 @@ Gọi gethostbyname () và connect () để kết nối với cổng 'servport' 
 	address.sin_family = AF_INET;
 	address.sin_port = htons(atoi(port));
 
-	if (connect(sd, (struct sockaddr *) &address, sizeof(address)) < 0)
-	{
+	if (connect(sd, (struct sockaddr *) &address, sizeof(address)) < 0){
 		perror("connecting");
 		exit(1);
 	}
@@ -115,8 +112,7 @@ Gọi gethostbyname () và connect () để kết nối với cổng 'servport' 
 }
 
 /* Đọc thông tin về một ổ cắm từ kernel */
-int readn(int sd, char *buf, int n)
-{
+int readn(int sd, char *buf, int n){
   int     toberead;
   char *  ptr;
 
@@ -139,8 +135,7 @@ int readn(int sd, char *buf, int n)
 }
 
 /* Nhận gói */
-Packet *recvpkt(int sd)
-{
+Packet *recvpkt(int sd){
   Packet *pkt;
 
   /* Bộ nhớ đc phân bố rông */
@@ -181,8 +176,7 @@ Packet *recvpkt(int sd)
 }
 
 /* Gửi gói */
-int sendpkt(int sd, char typ, long len, char *buf)
-{
+int sendpkt(int sd, char typ, long len, char *buf){
   char tmp[8];
   long siz;
 
@@ -199,8 +193,7 @@ int sendpkt(int sd, char typ, long len, char *buf)
 }
 
 /*Giải phóng không gian bộ nhớ bị chiếm dụng bởi các gói */
-void freepkt(Packet *pkt)
-{
+void freepkt(Packet *pkt){
   free(pkt->text);
   free(pkt);
 }

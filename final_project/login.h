@@ -2,6 +2,7 @@
 #define __LOGIN_H__
 #define BUFF_SIZE 8192
 
+/* 1 node la 1 account */
 typedef struct Node{
 	char username[30];
 	char pass[30];

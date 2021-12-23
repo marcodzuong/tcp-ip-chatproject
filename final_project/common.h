@@ -51,8 +51,13 @@ typedef struct _packet {
 extern int startserver();
 extern int hooktoserver();
 
+/* nhan goi tin */
 extern Packet *recvpkt(int sd);
+
+/* send goi tin */
 extern int sendpkt(int sd, char typ, long len, char *buf);
+
+/* Free */
 extern void freepkt(Packet *msg);
 
 /*--------------------------------------------------------------------*/
