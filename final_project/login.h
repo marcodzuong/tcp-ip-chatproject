@@ -6,11 +6,11 @@
 typedef struct Node{
 	char username[30];
 	char pass[30];
-	int status;
-	int state;
+	int status; // check trang thai lock
+	int state; // check online off
 	int sock;
 	int ID;
-	char status2[30];
+	char status2[30]; // du tinh lam cai trang thai emoji
 	struct Node *next;
 } node;
 /* la 1 user info trong room */
