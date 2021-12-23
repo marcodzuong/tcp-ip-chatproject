@@ -27,41 +27,49 @@
 #define BUFF_SIZE 8192
 
 /* In danh sách phòng */
-void displayListGroup(long lent, char *text);
+void displayListRoom(long lent, char *text);
 
 /* in thong tin user name */
-void showUser1(char *text);
+void displayListUserName(char *text);
 
+/* update status cua user */
 int update(int sock);
 
-int sendListOn(int sock);
+/* get thong tin user dang online trong room */
+int getListUserOnlineInRoom(int sock);
 
-int kickuser(int sock);
+/* kick user */
+int kickUser(int sock);
 
-int sendListUserGr(int sock);
+/* get list user trong room */
+int getListUserInRoom(int sock);
 
-/*Xem danh sách phòng */
-int sendListGr(int sock);
+/*get list room */
+int getListRoomChat(int sock);
 
 /* Tham gia nhóm chat */
-int joinagroup(int sock);
+int joinRoomChat(int sock);
 
-int join11(int sock);
+/* Join chat 1 vs 1 */
+int joinChat1VS1(int sock);
 
+/* login */
 int login(int sock, int *check);
 
 /* dang ki tai khoan mk -> gui sever */
 int sendRegister(int sock);
 
-int sendToUser(int sock);
+/* send chat content */
+int sendChatContent(int sock);
 
+/* gui thong diep tao room chat*/
 int sendCreatRoom(int sock);
 
+/*logout*/
 int logout(int sock, int *check);
 
 /* Các chức năng chính */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
 	int choiceFunc = 0;
 	char bufr1[MAXPKTLEN];
 	int sock;
@@ -243,7 +251,7 @@ int main(int argc, char *argv[])
 						{
 						case 0:
 						{
-							sendListOn(sock);
+							getListUserOnlineInRoom(sock);
 							break;
 						}
 						case 1:
@@ -397,19 +405,19 @@ int main(int argc, char *argv[])
 										}
 										if (strncmp(bufr, KICKUSER, strlen(KICKUSER)) == 0)
 										{
-											kickuser(sock);
-											// sendListUserGr(sock);
+											kickUser(sock);
+							
 											// break;
 											// sendpkt(sock,KICK,0,NULL);
 										}else
 										if (strncmp(bufr, LISTUSERGROUP, strlen(LISTUSERGROUP)) == 0)
 										{
-											sendListUserGr(sock);
+											getListUserInRoom(sock);
 											// break;
 										}else
 										if (strncmp(bufr, LISTROOM, strlen(LISTROOM)) == 0)
 										{
-											sendListGr(sock);
+											getListRoomChat(sock);
 											// break;
 										}else
 										if (strncmp(bufr, CREATEROOM, strlen(CREATEROOM)) == 0)
@@ -421,13 +429,13 @@ int main(int argc, char *argv[])
 										}else
 										if (strncmp(bufr, GETROOM, strlen(GETROOM)) == 0)
 										{
-											if (!joinagroup(sock))
+											if (!joinRoomChat(sock))
 												continue;
 											// break;
 										}else 
 										if (strncmp(bufr, TOUSER, strlen(TOUSER)) == 0)
 										{
-											if(!sendToUser(sock)){
+											if(!sendChatContent(sock)){
 												break;
 											};
 										}else 
@@ -448,7 +456,7 @@ int main(int argc, char *argv[])
 						case 2: /*Vào phòng */
 							/* Tham gia trò chuyện */
 							{
-								if (!joinagroup(sock)){
+								if (!joinRoomChat(sock)){
 									chatFunction();
 									continue;
 								}
@@ -600,19 +608,19 @@ int main(int argc, char *argv[])
 										}
 										if (strncmp(bufr, KICKUSER, strlen(KICKUSER)) == 0)
 										{
-											kickuser(sock);
-											// sendListUserGr(sock);
+											kickUser(sock);
+											
 											// break;
 											// sendpkt(sock,KICK,0,NULL);
 										}else
 										if (strncmp(bufr, LISTUSERGROUP, strlen(LISTUSERGROUP)) == 0)
 										{
-											sendListUserGr(sock);
+											getListUserInRoom(sock);
 											// break;
 										}else
 										if (strncmp(bufr, LISTROOM, strlen(LISTROOM)) == 0)
 										{
-											sendListGr(sock);
+											getListRoomChat(sock);
 											// break;
 										}else
 										if (strncmp(bufr, CREATEROOM, strlen(CREATEROOM)) == 0)
@@ -624,13 +632,13 @@ int main(int argc, char *argv[])
 										}else
 										if (strncmp(bufr, GETROOM, strlen(GETROOM)) == 0)
 										{
-											if (!joinagroup(sock))
+											if (!joinRoomChat(sock))
 												continue;
 											// break;
 										}else 
 										if (strncmp(bufr, TOUSER, strlen(TOUSER)) == 0)
 										{
-											if(!sendToUser(sock)){
+											if(!sendChatContent(sock)){
 												break;
 											};
 										}else 
@@ -650,7 +658,7 @@ int main(int argc, char *argv[])
 							}
 						case 3: /*Xem danh sách phòng */
 						{
-							sendListGr(sock);
+							getListRoomChat(sock);
 							break;
 						}
 						case 4:
@@ -660,7 +668,7 @@ int main(int argc, char *argv[])
 						}
 						case 5:
 						{
-							if (join11(sock)==1)
+							if (joinChat1VS1(sock)==1)
 							{
 
 							/* Tiếp tục trò chuyện */
@@ -742,7 +750,7 @@ int main(int argc, char *argv[])
 		}
 	}
 }
-void displayListGroup(long lent, char *text){
+void displayListRoom(long lent, char *text){
 	char *tptr,*a1,*length;
 	length=strtok(text,"/");
 	int length1=atoi(length);
@@ -763,7 +771,7 @@ void displayListGroup(long lent, char *text){
 }
 
 
-void showUser1(char *text){
+void displayListUserName(char *text){
 	char *tptr ;
 	int st;
 	tptr = text;
@@ -776,24 +784,21 @@ void showUser1(char *text){
 	}
 }
 
-int update(int sock)
-{
+int update(int sock){
 	Packet *pkt;
 	char bufr[MAXPKTLEN];
 	char *bufrptr;
 	int bufrlen;
 	char *status;
-	printf("===UPDATE===\n");
-	while (getchar() != '\n')
-		;
-	do
-	{
-		all_emotion();
+	printfYelloww("\n\n=======UPDATE======\n\n");
+	while (getchar() != '\n');
+	do{
+		allEmotion();
 		fgets(bufr, MAXPKTLEN, stdin);
 	} while (atoi(bufr) > 4 || atoi(bufr) < 1);
+
 	bufr[strlen(bufr) - 1] = '\0';
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
@@ -808,21 +813,17 @@ int update(int sock)
 	/* Nhận phản hồi từ server */
 	//printf("%s",&bufr);
 	pkt = recvpkt(sock);
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/*Error */
-	if (pkt->type == JOIN_REJECTED)
-	{
+	if (pkt->type == JOIN_REJECTED){
 		printf("admin: %s\n", pkt->text);
 		free(status);
 		return (0);
-	}
-	else
-	{
+	}else{
 		//check[sock] = 0;
 		printf("%s!\n", pkt->text);
 		free(status);
@@ -830,33 +831,28 @@ int update(int sock)
 	}
 }
 
-int sendListOn(int sock)
-{
+int getListUserOnlineInRoom(int sock){
 	Packet *pkt;
 	/* Yêu cầu thông tin phòng chat */
 	sendpkt(sock, LISTUSERON, 0, NULL);
 
 	/* Nhận phản hồi từ phòng chat */
 	pkt = recvpkt(sock);
-	
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
-	if (pkt->type != LISTUSERON)
-	{
-		fprintf(stderr, "error: unexpected reply from server2\n");
+	if (pkt->type != LISTUSERON){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/* Hiển thị phòng chat */
-	showUser1(pkt->text);
-	// showUser(pkt->lent, pkt->text);
+	displayListUserName(pkt->text);
 	return 1;
 }
-int kickuser(int sock){
+int kickUser(int sock){
 	Packet *pkt;
 	char bufr[MAXPKTLEN];
 	sendpkt(sock, LIST_USERGR, 0, NULL);
@@ -877,7 +873,7 @@ int kickuser(int sock){
 	}
 
 	/* Hiển thị phòng chat */
-	showUser1(pkt->text);
+	displayListUserName(pkt->text);
 	printf("kick username?\n ");
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
@@ -886,34 +882,29 @@ int kickuser(int sock){
 	
 	printf("%s\n",pkt->text);
 }
-int sendListUserGr(int sock)
-{
+int getListUserInRoom(int sock){
 	Packet *pkt;
 	/* Yêu cầu thông tin phòng chat */
 	sendpkt(sock, LIST_USERGR, 0, NULL);
 
 	/* Nhận phản hồi từ phòng chat */
 	pkt = recvpkt(sock);
-	
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
-	if (pkt->type != LIST_USERGR)
-	{
-		fprintf(stderr, "error: unexpected reply from server3\n");
+	if (pkt->type != LIST_USERGR){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/* Hiển thị phòng chat */
-	showUser1(pkt->text);
+	displayListUserName(pkt->text);
 	return 1;
 }
-/*Xem danh sách phòng */
-int sendListGr(int sock)
-{
+
+int getListRoomChat(int sock){
 	Packet *pkt;
 	/* Yêu cầu thông tin phòng chat */
 	sendpkt(sock, LIST_GROUPS, 0, NULL);
@@ -921,27 +912,23 @@ int sendListGr(int sock)
 	/* Nhận phản hồi từ phòng chat */
 	pkt = recvpkt(sock);
 	
-	if (!pkt)
-	{
+	if (!pkt){
 		printf("error: server died\n");
 		exit(1);
 	}
 
-	if (pkt->type != LIST_GROUPS)
-	{
+	if (pkt->type != LIST_GROUPS){
 		fprintf(stderr, "error: unexpected reply from server3\n");
 		exit(1);
 	}
 
 	/* Hiển thị phòng chat */
-	displayListGroup(pkt->lent, pkt->text);
+	displayListRoom(pkt->lent, pkt->text);
 	return 1;
 }
 
 /* Tham gia nhóm chat */
-int joinagroup(int sock)
-{
-
+int joinRoomChat(int sock){
 	Packet *pkt;
 	char bufr[MAXPKTLEN];
 	char *bufrptr;
@@ -954,29 +941,26 @@ int joinagroup(int sock)
 
 	/* Nhận phản hồi từ phòng chat */
 	pkt = recvpkt(sock);
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
-	if (pkt->type != LIST_GROUPS)
-	{
-		fprintf(stderr, "error: unexpected reply from server4\n");
+	if (pkt->type != LIST_GROUPS){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/* Hiển thị phòng chat */
-	displayListGroup(pkt->lent, pkt->text);
+	displayListRoom(pkt->lent, pkt->text);
 	
 	/* Tên phòng chat */
-	printf("which group?\n ");
+	printfGreen("\nwhich group?\n");
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 
 	/* Thoát */
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
@@ -991,27 +975,23 @@ int joinagroup(int sock)
 	
 	/* Nhận phản hồi từ server */
 	pkt = recvpkt(sock);
-	
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
-	if (pkt->type != JOIN_ACCEPTED && pkt->type != JOIN_REJECTED)
-	{
-		fprintf(stderr, "error: unexpected reply from server5\n");
+
+	if (pkt->type != JOIN_ACCEPTED && pkt->type != JOIN_REJECTED){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/*Từ chối cho vào phòng */
-	if (pkt->type == JOIN_REJECTED)
-	{
+	if (pkt->type == JOIN_REJECTED){
 		printf("admin: %s\n", pkt->text);
 		free(gname);
 		return (0);
-	}
-	else /* Tham gia thành công */
-	{
+	}else {
+		/* Tham gia thành công */
 		printf("admin: You joined '%s'!\n", gname);
 		printf("(Press '/help' to help or '/end' to exit!)\n");
 		free(gname);
@@ -1019,9 +999,7 @@ int joinagroup(int sock)
 	}
 }
 
-int join11(int sock)
-{
-
+int joinChat1VS1(int sock){
 	Packet *pkt;
 	char bufr[MAXPKTLEN];
 	char *bufrptr;
@@ -1034,79 +1012,58 @@ int join11(int sock)
 
 	/* Nhận phản hồi từ phòng chat */
 	pkt = recvpkt(sock);
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
-	if (pkt->type != LISTUSERON)
-	{
-		fprintf(stderr, "error: unexpected reply from server6\n");
+	if (pkt->type != LISTUSERON){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/* Hiển thị phòng chat */
-	showUser1(pkt->text);
+	displayListUserName(pkt->text);
 
 	/* Tên phòng chat */
-	printf("which account?\n ");
+	printfGreen("\nwhich account?\n");
 
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 	uname = strdup(bufr);
-	// /* Thoát */
-	// if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	// {
-	// 	close(sock);
-	// 	exit(0);
-	// }
-	// uname = malloc(strlen(bufr) + 1);
-	// strcpy(uname, bufr);//strcpy(uname,bufr);
 
-	/* Gửi tin nhắn */
-	// bufrptr = bufr;
-	// strcpy(bufrptr, uname);
-	// bufrptr += strlen(bufrptr) + 1;
-	// bufrlen = bufrptr - bufr;
+	// /* Thoát */
 	sendpkt(sock, JOIN_2, strlen(uname)+1, uname);
 
 	/* Nhận phản hồi từ server */
 	pkt = recvpkt(sock);
 	
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
-	if (pkt->type != JOIN_ACCEPTED && pkt->type != JOIN_REJECTED && pkt->type != DONE)
-	{
-		fprintf(stderr, "error: unexpected reply from server7\n");
+	if (pkt->type != JOIN_ACCEPTED && pkt->type != JOIN_REJECTED && pkt->type != DONE){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/*Từ chối cho vào phòng */
-	if (pkt->type == JOIN_REJECTED)
-	{
+	if (pkt->type == JOIN_REJECTED){
 		printf("admin: %s\n", pkt->text);
 		// free(uname);
 		return (0);
-	}
-	else 
-	if (pkt->type == DONE){
+	}else if (pkt->type == DONE){
 		printf("admin: %s refuse",uname);
 		return(0);
-	} 
-	else/* Tham gia thành công */
-	{
+	} else {
+		/* Tham gia thành công */
 		printf("admin: You chat with '%s'!\n", uname);
 		// free(uname);
 		return (1);
 	}
 }
 
-int login(int sock, int *check)
-{
+int login(int sock, int *check){
 	Packet *pkt;
 	char bufr[MAXNAMELEN];
 	char *bufrptr,*bufrptr1;
@@ -1115,15 +1072,13 @@ int login(int sock, int *check)
 	if (check[sock] == 1)
 		return 1;
 	//username
-	printf("===LOG IN===\n");
-	while (getchar() != '\n')
-		;
+	printfYelloww("\n\n==========LOG IN==========\n\n");
+	while (getchar() != '\n');
 	printf("Username: ");
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
@@ -1135,8 +1090,7 @@ int login(int sock, int *check)
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
@@ -1159,22 +1113,18 @@ int login(int sock, int *check)
 	/* Nhận phản hồi từ server */
 	pkt = recvpkt(sock);
 	
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error\n");
 		exit(1);
 	}
 
 	/*LOG IN sai */
-	if (pkt->type == JOIN_REJECTED)
-	{
+	if (pkt->type == JOIN_REJECTED){
 		printf("admin: %s\n", pkt->text);
 		free(username);
 		free(pass);
-		return (0);
-	}
-	else
-	{
+		return 0;
+	}else{
 		check[sock] = 1;
 		printf("%s!\n", pkt->text);
 		free(username);
@@ -1244,7 +1194,7 @@ int sendRegister(int sock){
 	}
 }
 
-int sendToUser(int sock){
+int sendChatContent(int sock){
 	char name[MAXPKTLEN];
 	char content[MAXPKTLEN],txt[MAXPKTLEN];
 	printf("name: ");
@@ -1260,21 +1210,19 @@ int sendToUser(int sock){
 	// pkt = recvpkt(sock);
 	return 1;
 }
-int sendCreatRoom(int sock)
-{
+int sendCreatRoom(int sock){
 	Packet *pkt;
 	char bufr[MAXNAMELEN];
 	char *bufrptr,*bufrptr1;
 	int bufrlen;
 	char *name;
 	char *cap;
-	printf("===Creat===\n");
+	printfYelloww("\n\n========Creat=======\n\n");
 	printf("Room's name: ");
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
@@ -1286,8 +1234,7 @@ int sendCreatRoom(int sock)
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
@@ -1306,22 +1253,18 @@ int sendCreatRoom(int sock)
 	/* Nhận phản hồi từ server */
 	pkt = recvpkt(sock);
 	
-	if (!pkt)
-	{
-		fprintf(stderr, "error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error!!\n");
 		exit(1);
 	}
 
 	/*Error */
-	if (pkt->type == UNDONE)
-	{
+	if (pkt->type == UNDONE){
 		printf("admin: %s\n", pkt->text);
 		free(name);
 		free(cap);
 		return (0);
-	}
-	else
-	{
+	}else{
 		printf("%s!\n", pkt->text);
 		if(pkt->type == JOIN_REJECTED) {
 			free(name);
@@ -1336,26 +1279,22 @@ int sendCreatRoom(int sock)
 
 		/* Nhận phản hồi từ server */
 		pkt = recvpkt(sock);
-		if (!pkt)
-		{
-			printf("error: server died\n");
+		if (!pkt){
+			printfRed("\nSystem Error!!\n");
 			exit(1);
 		}
-		if (pkt->type != JOIN_ACCEPTED && pkt->type != JOIN_REJECTED)
-		{
-			fprintf(stderr, "error: unexpected reply from server5\n");
+		if (pkt->type != JOIN_ACCEPTED && pkt->type != JOIN_REJECTED){
+			printfRed("\nSystem Error!!\n");
 			exit(1);
 		}
 
 		/*Từ chối cho vào phòng */
-		if (pkt->type == JOIN_REJECTED)
-		{
+		if (pkt->type == JOIN_REJECTED){
 			printf("admin: %s\n", pkt->text);
 			free(name);
 			return (0);
-		}
-		else /* Tham gia thành công */
-		{
+		}else {
+			/* Tham gia thành công */
 			printf("admin: You joined '%s'!\n", name);
 			printf("(Press '/help' to help or '/end' to exit!)\n");
 			free(name);
@@ -1367,20 +1306,18 @@ int sendCreatRoom(int sock)
 	}
 }
 
-int logout(int sock, int *check)
-{
+int logout(int sock, int *check){
 	Packet *pkt;
 	char bufr[MAXNAMELEN];
 	char *bufrptr;
 	int bufrlen;
 	char *username;
-	printf("===LOG OUT===\n");
+	printfYelloww("\n\n========LOG OUT======\n\n");
 	printf("Username: ");
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
+	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 		close(sock);
 		exit(0);
 	}
@@ -1396,21 +1333,17 @@ int logout(int sock, int *check)
 	/* Nhận phản hồi từ server */
 	pkt = recvpkt(sock);
 	
-	if (!pkt)
-	{
-		printf("error: server died\n");
+	if (!pkt){
+		printfRed("\nSystem Error!!\n");
 		exit(1);
 	}
 
 	/*Error */
-	if (pkt->type == JOIN_REJECTED)
-	{
+	if (pkt->type == JOIN_REJECTED){
 		printf("admin: %s\n", pkt->text);
 		free(username);
 		return (0);
-	}
-	else
-	{
+	}else{
 		check[sock] = 0;
 		printf("%s!\n", pkt->text);
 		free(username);

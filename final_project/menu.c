@@ -11,7 +11,7 @@ void menu(){
 	printfRed("Your choice (1-3):  ");
 }
 
-void all_emotion(){
+void allEmotion(){
 	printfYelloww("\n\n=======Status========\n\n");
 	printfGreen("1. Smile\n");
 	printfGreen("2. Sad\n");
