@@ -26,10 +26,9 @@ void printfChatMenuFunction(){
 	printfGreen("1. Create room\n");
 	printfGreen("2. Get in room\n");
 	printfGreen("3. List of rooms\n");
-	printfGreen("4. Update status\n");
-	printfGreen("5. Chat 1vs1\n");
-	printfGreen("6. Sign Out\n");
-	printfRed("Your choice (1-6):\n");
+	printfGreen("4. Chat 1vs1\n");
+	printfGreen("5. Sign Out\n");
+	printfRed("Your choice (1-5):\n");
 }
 
 void printfMenuHelp(){

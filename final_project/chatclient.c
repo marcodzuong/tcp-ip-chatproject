@@ -600,10 +600,10 @@ int main(int argc, char *argv[]){
 						case 3: /*Xem danh sách phòng */
 							getListRoomChat(sock);
 							break;
+						// case 4:
+						// 	update(sock);
+						// 	break;
 						case 4:
-							update(sock);
-							break;
-						case 5:
 							if (joinChat1VS1(sock)==1)
 							{
 
@@ -664,18 +664,18 @@ int main(int argc, char *argv[]){
 								break;
 							}
 							break;
-							case 6:
+							case 5:
 								logout(sock, check);
 								break;
 						}
-						if(choiceFunc!=6) {
+						if(choiceFunc!=5) {
 							printfChatMenuFunction();
 						}
 					}
 					freepkt(pkt1);
 				}
 				/* Xử lí đầu vào */
-			} while (choiceFunc != 6);
+			} while (choiceFunc != 5);
 			choiceFunc = -1;
 		}
 		else
@@ -926,7 +926,7 @@ int joinRoomChat(int sock){
 	}else {
 		/* Tham gia thành công */
 		printf("admin: You joined '%s'!\n", gname);
-		printf("(Press '/help' to help or '/end' to exit!)\n");
+		printfGreen("(Press '/help' to help or '/end' to exit!)\n");
 		free(gname);
 		return (1);
 	}
@@ -1229,7 +1229,7 @@ int sendCreatRoom(int sock){
 		}else {
 			/* Tham gia thành công */
 			printf("admin: You joined '%s'!\n", name);
-			printf("(Press '/help' to help or '/end' to exit!)\n");
+			printfGreen("(Press '/help' to help or '/end' to exit!)\n");
 			free(name);
 			return (1);
 		}
