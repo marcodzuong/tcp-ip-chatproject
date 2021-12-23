@@ -116,8 +116,7 @@ int main(int argc, char *argv[]){
 		if (strcmp(choice, "1") == 0){
 			sendRegister(sock);
 			continue;
-		}
-		else if (strcmp(choice, "2") == 0){
+		}else if (strcmp(choice, "2") == 0){
 			if (!login(sock, check)){
 				continue;
 			}
@@ -126,7 +125,7 @@ int main(int argc, char *argv[]){
 				__fpurge(stdin);
 				tempfds = clientfds;
 				if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1){
-					perror("select");
+					printfRed("select");
 					exit(4);
 				}
 
@@ -145,13 +144,13 @@ int main(int argc, char *argv[]){
 					// printf("bang tin,type :%d , text:%s\n", pkt1->type,pkt1->text);
 					if (!pkt1){
 						/* Máy chủ ngừng hoạt động */
-						printf("error: server died\n");
+						printfRed("\nerror: server died\n");
 						exit(1);
 					}
 
 					/* Hiển thị tin nhắn văn bản */
 					if (pkt1->type != MENU && pkt1->type != REQUEST){
-						fprintf(stderr, "error: unexpected reply from server\n");
+						printfRed("\nerror: unexpected reply from server\n");
 						exit(1);
 					}else if (pkt1->type == REQUEST){	
 						Packet *pkt2;
@@ -727,9 +726,9 @@ int update(int sock){
 	int bufrlen;
 	char *status;
 	printfYelloww("\n\n=======UPDATE======\n\n");
-	while (getchar() != '\n');
 	do{
 		printfAllEmotion();
+		__fpurge(stdin);
 		fgets(bufr, MAXPKTLEN, stdin);
 	} while (atoi(bufr) > 4 || atoi(bufr) < 1);
 
