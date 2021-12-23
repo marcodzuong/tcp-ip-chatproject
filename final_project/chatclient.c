@@ -77,9 +77,8 @@ int main(int argc, char *argv[]){
 	int check[MAXNAMELEN];
 	memset(check, 0, MAXNAMELEN);
 	/* Kiểm tra tính hợp lệ của cú pháp  */
-	if (argc != 3)
-	{
-		printf("Wrong syntax!!!\n--> Correct Syntax: ./client AddressIP PortNumber\n");
+	if (argc != 3){
+		printfRed("Wrong syntax!!!\n--> Correct Syntax: ./client AddressIP PortNumber\n");
 		return 1;
 	}
 	/* Kết nối vs máy chủ */
@@ -102,8 +101,7 @@ int main(int argc, char *argv[]){
 	FD_SET(0, &clientfds1);
 	/* Vòng lặp */
 	char choice[100] = " ";
-	while (1)
-	{
+	while (1){
 		/*Menu login/logout */
 		menu();
 		// char choice=' ';
@@ -111,162 +109,135 @@ int main(int argc, char *argv[]){
 		__fpurge(stdin);
 		scanf("%s", &choice);
 		//printf("%s",Gettype(choice));
-		if (strcmp(choice, "3") == 0)
-		{
+		if (strcmp(choice, "3") == 0){
 			printf("-->Exit!\n");
 			exit(0);
 		}
-		if (strcmp(choice, "1") == 0)
-		{
+		if (strcmp(choice, "1") == 0){
 			sendRegister(sock);
 			continue;
 		}
-		else if (strcmp(choice, "2") == 0)
-		{
-			if (!login(sock, check))
-			{
+		else if (strcmp(choice, "2") == 0){
+			if (!login(sock, check)){
 				continue;
 			}
 			chatFunction();
-			do
-			{
+			do{
 				__fpurge(stdin);
 				tempfds = clientfds;
-				if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1)
-				{
+				if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1){
 					perror("select");
 					exit(4);
 				}
 
 				/* Các bộ trong tempfds kiểm tra xem có phải là bộ socket k? Nếu có, nghĩa là máy chủ gửi tin nhắn
 			, còn nếu không thì nhập tin nhắn để gửi đến máy chủ */
-				if (FD_ISSET(0, &tempfds))
-				{
+				if (FD_ISSET(0, &tempfds)){
 					fgets(bufr1, MAXPKTLEN, stdin);
 					sendpkt(sock, MENU, strlen(bufr1), bufr1);
 				}
 				/* Xử lí thông tin từ máy chủ */
-				if (FD_ISSET(sock, &tempfds))
-				{
+				if (FD_ISSET(sock, &tempfds)){
 				    fflush(stdin);
 					Packet *pkt1;
 					char *tm;
 					pkt1 = recvpkt(sock);
 					// printf("bang tin,type :%d , text:%s\n", pkt1->type,pkt1->text);
-					if (!pkt1)
-					{
+					if (!pkt1){
 						/* Máy chủ ngừng hoạt động */
 						printf("error: server died\n");
 						exit(1);
 					}
 
 					/* Hiển thị tin nhắn văn bản */
-					if (pkt1->type != MENU && pkt1->type != REQUEST)
-					{
+					if (pkt1->type != MENU && pkt1->type != REQUEST){
 						fprintf(stderr, "error: unexpected reply from server\n");
 						exit(1);
-					}
-					else if (pkt1->type == REQUEST)
-					{	
-							Packet *pkt2;
-							int pkt1_len = pkt1->lent;
-						    char *uname;
-							// uname=strtok(pkt1->text,":");
-							char bufr[MAXPKTLEN],tl[MAXPKTLEN];
-							// snprintf(uname, pkt1_len + 1, "%s", pkt1->text);
-							printf("admin: You chat with '%s' 'y' to chat or 'n' to no \n", pkt1->text);
-							/* Tiếp tục trò chuyện */
-							fgets(bufr, MAXPKTLEN, stdin);
-							bufr[strlen(bufr) - 1] = '\0';
-							strcpy(tl,bufr);
-							strcat(tl,"/");
-							strcat(tl,pkt1->text);
-							// printf("%s",tl);
-							sendpkt(sock,REQUEST1,strlen(tl)+1,tl);
-							pkt2 = recvpkt(sock);
-							if (pkt2->type == SUCCESS){
-								printf("admin: You chat with '%s' \n", pkt1->text);
-								while (1)
-								{
-									/* Gọi select để theo dõi thông tin bàn phím và máy chủ */
-									tempfds = clientfds;
-									if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1)
-									{
-										perror("select");
-										exit(4);
-									}
-									fflush(stdout);
+					}else if (pkt1->type == REQUEST){	
+						Packet *pkt2;
+						int pkt1_len = pkt1->lent;
+						char *uname;
+						// uname=strtok(pkt1->text,":");
+						char bufr[MAXPKTLEN],tl[MAXPKTLEN];
+						// snprintf(uname, pkt1_len + 1, "%s", pkt1->text);
+						printf("admin: You chat with '%s' 'y' to chat or 'n' to no \n", pkt1->text);
+						/* Tiếp tục trò chuyện */
+						fgets(bufr, MAXPKTLEN, stdin);
+						bufr[strlen(bufr) - 1] = '\0';
+						strcpy(tl,bufr);
+						strcat(tl,"/");
+						strcat(tl,pkt1->text);
+						// printf("%s",tl);
+						sendpkt(sock,REQUEST1,strlen(tl)+1,tl);
+						pkt2 = recvpkt(sock);
+						if (pkt2->type == SUCCESS){
+							printf("admin: You chat with '%s' \n", pkt1->text);
+							while (1){
+								/* Gọi select để theo dõi thông tin bàn phím và máy chủ */
+								tempfds = clientfds;
+								if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1){
+									perror("select");
+									exit(4);
+								}
+								fflush(stdout);
 
 									/* Các bộ trong tempfds kiểm tra xem có phải là bộ socket k? Nếu có nghĩa là máy chủ gửi tin nhắn
 								, còn nếu không thì nhập tin nhắn để gửi đến may chủ */
 
 									/* Xử lí thông tin từ máy chủ */
-									if (FD_ISSET(sock, &tempfds))
-									{
-										Packet *pkt;
-										pkt = recvpkt(sock);
-										if (!pkt)
-										{
-											/* Máy chủ ngừng hoạt động */
-											printf("error: server died\n");
-											exit(1);
-										}
-
-										/* Hiển thị tin nhắn văn bản */
-										if (pkt->type != USER_TEXT1 && pkt->type != QUIT)
-										{
-											fprintf(stderr, "error: unexpected reply from server\n");
-											exit(1);
-										}
-										if (pkt->type == QUIT) break;
-										printf("recv: %s", pkt->text);
-										freepkt(pkt);
+								if (FD_ISSET(sock, &tempfds)){
+									Packet *pkt;
+									pkt = recvpkt(sock);
+									if (!pkt){
+										/* Máy chủ ngừng hoạt động */
+										printf("error: server died\n");
+										exit(1);
 									}
+
+									/* Hiển thị tin nhắn văn bản */
+									if (pkt->type != USER_TEXT1 && pkt->type != QUIT){
+										fprintf(stderr, "error: unexpected reply from server\n");
+										exit(1);
+									}
+									if (pkt->type == QUIT) break;
+									printf("recv: %s", pkt->text);
+									freepkt(pkt);
+								}
 									/* Xử lí đầu vào */
-									if (FD_ISSET(0, &tempfds))
-									{
-										char bufr[MAXPKTLEN];
-										fgets(bufr, MAXPKTLEN, stdin);
-										if (strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-										{
-											/* Thoát khỏi phong chat */
-											sendpkt(sock, QUIT, 0, NULL);
-											break;
-										}
-
-										/*Gửi tin nhắn đến máy chủ */
-										sendpkt(sock, USER_TEXT1, strlen(bufr) + 1, bufr);
+								if (FD_ISSET(0, &tempfds)){
+									char bufr[MAXPKTLEN];
+									fgets(bufr, MAXPKTLEN, stdin);
+									if (strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
+										/* Thoát khỏi phong chat */
+										sendpkt(sock, QUIT, 0, NULL);
+										break;
 									}
-								}	
-							} else {
-								// chatFunction();
-							}
-							chatFunction();
-							// break;
-					}
-					else if (pkt1->type == MENU)
-					{
-						choiceFunc = atoi(pkt1->text);
-						switch (choiceFunc)
-						{
-						case 0:
-						{
-							getListUserOnlineInRoom(sock);
-							break;
+
+									/*Gửi tin nhắn đến máy chủ */
+									sendpkt(sock, USER_TEXT1, strlen(bufr) + 1, bufr);
+								}
+							}	
+						} else {
+							// chatFunction();
 						}
-						case 1:
-							/*Tao phong */
-							{
+						chatFunction();
+							// break;
+					}else if (pkt1->type == MENU){
+						choiceFunc = atoi(pkt1->text);
+						switch (choiceFunc){
+							case 0:
+								getListUserOnlineInRoom(sock);
+								break;
+							case 1:
+								/*Tao phong */
 								if(!sendCreatRoom(sock)){
 									break;
 								};
-								while (1)
-								{
+								while (1){
 									/* Gọi select để theo dõi thông tin bàn phím và máy chủ */
 									tempfds = clientfds;
 
-									if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1)
-									{
+									if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1){
 										perror("select");
 										exit(4);
 									}
@@ -275,20 +246,17 @@ int main(int argc, char *argv[]){
 							, còn nếu không thì nhập tin nhắn để gửi đến may chủ */
 
 									/* Xử lí thông tin từ máy chủ */
-									if (FD_ISSET(sock, &tempfds))
-									{
+									if (FD_ISSET(sock, &tempfds)){
 
 										Packet *pkt;
 										pkt = recvpkt(sock);
 										
-										if (!pkt)
-										{
+										if (!pkt){
 											/* Máy chủ ngừng hoạt động */
 											printf("error: server died\n");
 											exit(1);
 										}
-										if (pkt->type == REQUEST)
-											{	
+										if (pkt->type == REQUEST){	
 												Packet *pkt2;
 												int pkt1_len = pkt->lent;
 												char *uname;
@@ -307,12 +275,10 @@ int main(int argc, char *argv[]){
 												pkt2 = recvpkt(sock);
 												if (pkt2->type == SUCCESS){
 													printf("admin: You chat with '%s' \n", pkt->text);
-													while (1)
-													{
+													while (1){
 														/* Gọi select để theo dõi thông tin bàn phím và máy chủ */
 														tempfds = clientfds;
-														if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1)
-														{
+														if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1){
 															perror("select");
 															exit(4);
 														}
@@ -322,20 +288,17 @@ int main(int argc, char *argv[]){
 													, còn nếu không thì nhập tin nhắn để gửi đến may chủ */
 
 														/* Xử lí thông tin từ máy chủ */
-														if (FD_ISSET(sock, &tempfds))
-														{
+														if (FD_ISSET(sock, &tempfds)){
 															Packet *pkt3;
 															pkt3 = recvpkt(sock);
-															if (!pkt3)
-															{
+															if (!pkt3){
 																/* Máy chủ ngừng hoạt động */
 																printf("error: server died\n");
 																exit(1);
 															}
 
 															/* Hiển thị tin nhắn văn bản */
-															if (pkt3->type != USER_TEXT1 && pkt3->type != QUIT && pkt3->type != USER_TEXT)
-															{
+															if (pkt3->type != USER_TEXT1 && pkt3->type != QUIT && pkt3->type != USER_TEXT){
 																fprintf(stderr, "error: unexpected reply from server\n");
 																exit(1);
 															}
@@ -343,20 +306,17 @@ int main(int argc, char *argv[]){
 																printf("%s quit\n",pkt->text);
 																// sendpkt(sock, QUIT, 0, NULL);
 																break;
-															} else 
-															if (pkt3->type == USER_TEXT1 ){
+															} else if (pkt3->type == USER_TEXT1 ){
 																printf("recv: %s", pkt3->text);
 																freepkt(pkt3);
 															}
 														
 														}
 														/* Xử lí đầu vào */
-														if (FD_ISSET(0, &tempfds))
-														{
+														if (FD_ISSET(0, &tempfds)){
 															char bufr[MAXPKTLEN];
 															fgets(bufr, MAXPKTLEN, stdin);
-															if (strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-															{
+															if (strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 																/* Thoát khỏi phong chat */
 																sendpkt(sock, QUIT, 0, NULL);
 																break;
@@ -374,8 +334,7 @@ int main(int argc, char *argv[]){
 											}
 
 										/* Hiển thị tin nhắn văn bản */
-										if (pkt->type != USER_TEXT && pkt->type != REQUEST && pkt->type != KICKU)
-										{
+										if (pkt->type != USER_TEXT && pkt->type != REQUEST && pkt->type != KICKU){
 											fprintf(stderr, "error: unexpected reply from serve1r\n");
 											exit(1);
 										}
@@ -393,66 +352,49 @@ int main(int argc, char *argv[]){
 										
 									}
 									/* Xử lí đầu vào */
-									if (FD_ISSET(0, &tempfds))
-									{
+									if (FD_ISSET(0, &tempfds)){
 										char bufr[MAXPKTLEN];
 										fgets(bufr, MAXPKTLEN, stdin);
-										if (strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-										{
+										if (strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0){
 											/* Thoát khỏi phong chat */
 											sendpkt(sock, LEAVE_GROUP, 0, NULL);
 											break;
 										}
-										if (strncmp(bufr, KICKUSER, strlen(KICKUSER)) == 0)
-										{
+										if (strncmp(bufr, KICKUSER, strlen(KICKUSER)) == 0){
 											kickUser(sock);
 							
 											// break;
 											// sendpkt(sock,KICK,0,NULL);
-										}else
-										if (strncmp(bufr, LISTUSERGROUP, strlen(LISTUSERGROUP)) == 0)
-										{
+										}else if (strncmp(bufr, LISTUSERGROUP, strlen(LISTUSERGROUP)) == 0){
 											getListUserInRoom(sock);
 											// break;
-										}else
-										if (strncmp(bufr, LISTROOM, strlen(LISTROOM)) == 0)
-										{
+										}else if (strncmp(bufr, LISTROOM, strlen(LISTROOM)) == 0){
 											getListRoomChat(sock);
 											// break;
-										}else
-										if (strncmp(bufr, CREATEROOM, strlen(CREATEROOM)) == 0)
-										{
+										}else if (strncmp(bufr, CREATEROOM, strlen(CREATEROOM)) == 0){
 											if(!sendCreatRoom(sock)){
 												break;
 											};
 											// break;
-										}else
-										if (strncmp(bufr, GETROOM, strlen(GETROOM)) == 0)
-										{
+										}else if (strncmp(bufr, GETROOM, strlen(GETROOM)) == 0){
 											if (!joinRoomChat(sock))
 												continue;
 											// break;
-										}else 
-										if (strncmp(bufr, TOUSER, strlen(TOUSER)) == 0)
-										{
+										}else if (strncmp(bufr, TOUSER, strlen(TOUSER)) == 0){
 											if(!sendChatContent(sock)){
 												break;
 											};
-										}else 
-										if (strncmp(bufr, HELP, strlen(HELP)) == 0)
-										{
+										}else if (strncmp(bufr, HELP, strlen(HELP)) == 0){
 											menuhelp();
 											// break;
 										} else {
 											sendpkt(sock, USER_TEXT, strlen(bufr) + 1, bufr);
 										}
-										
 
 										/*Gửi tin nhắn đến máy chủ */
 									}
 								}
 								break;
-							}
 						case 2: /*Vào phòng */
 							/* Tham gia trò chuyện */
 							{
@@ -657,17 +599,12 @@ int main(int argc, char *argv[]){
 								break;
 							}
 						case 3: /*Xem danh sách phòng */
-						{
 							getListRoomChat(sock);
 							break;
-						}
 						case 4:
-						{
 							update(sock);
 							break;
-						}
 						case 5:
-						{
 							if (joinChat1VS1(sock)==1)
 							{
 
@@ -728,14 +665,13 @@ int main(int argc, char *argv[]){
 								break;
 							}
 							break;
+							case 6:
+								logout(sock, check);
+								break;
 						}
-						case 6:
-						{
-							logout(sock, check);
-							break;
+						if(choiceFunc!=6) {
+							chatFunction();
 						}
-						}
-						if(choiceFunc!=6) {chatFunction();}
 					}
 					freepkt(pkt1);
 				}
