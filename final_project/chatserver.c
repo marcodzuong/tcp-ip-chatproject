@@ -216,8 +216,7 @@ int main(int argc, char *argv[]){
 	FD_SET(servsock, &livesdset); /*Thêm sercesock vào livesdset*/
 
 	/* Xử lý yêu cầu */
-	while (1)
-	{
+	while (1){
 		int sock; /* vòng lặp */
 
 		tempset = livesdset;
@@ -226,22 +225,19 @@ int main(int argc, char *argv[]){
 		select(maxsd + 1, &tempset, NULL, NULL, NULL);
 
 		/* vòng lặp */
-		for (sock = 3; sock <= maxsd; sock++)
-		{
+		for (sock = 3; sock <= maxsd; sock++){
 			/* Nếu máy chủ lắng nghe ổ cắm, nó sẽ nhảy ra khỏi gói nhận và thực hiện kết nối chấp nhận */
 			if (sock == servsock)
 				continue;
 
 			/* Có một tin nhắn từ socket máy khách */
-			if (FD_ISSET(sock, &tempset))
-			{
+			if (FD_ISSET(sock, &tempset)){
 				Packet *pkt;
 
 				/* Đọc tin nhắn */
 				pkt = recvpkt(sock); /* Hàm recvpkt được định nghĩa trong "chatlinker.c" */
 
-				if (!pkt)
-				{
+				if (!pkt){
 					/* Máy khách bị ngắt kết nố */
 					char *clientname; /* Tên máy khách */
 
@@ -249,8 +245,7 @@ int main(int argc, char *argv[]){
 					socklen_t len;
 					struct sockaddr_in addr;
 					len = sizeof(addr);
-					if (getpeername(sock, (struct sockaddr *)&addr, &len) == 0)
-					{
+					if (getpeername(sock, (struct sockaddr *)&addr, &len) == 0){
 						struct sockaddr_in *s = (struct sockaddr_in *)&addr;
 						struct hostent *he;
 						he = gethostbyaddr(&s->sin_addr, sizeof(struct in_addr), AF_INET);
@@ -270,8 +265,7 @@ int main(int argc, char *argv[]){
 					/* Xóa sock khỏi bộ thăm dò livesdset */
 					FD_CLR(sock, &livesdset);
 				}
-				else
-				{
+				else{
 					//CHEN LOGIN VAO DAY
 
 					char *gname, *mname, *username, *pass, *name, *uname, *status;
