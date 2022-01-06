@@ -68,7 +68,7 @@ int sendCreatRoom(int sock);
 /*logout*/
 int logout(int sock, int *check);
 /* xu li yeu cau chat 1 1 tu ng khac*/
-void handlerChatRequest(Packet * pkt);
+void handlerChatRequest(Packet *pkt1,int sock,fd_set tempfds, fd_set clientfds);
 /* Các chức năng chính */
 int main(int argc, char *argv[]){
 	int choiceFunc = 0;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]){
 						printfRed("\nerror: unexpected reply from server\n");
 						exit(1);
 					}else if (pkt1->type == REQUEST){	/// mot nguoi khac yeu cau tro truyen voi mk 
-						handlerChatRequest(pkt1);
+						handlerChatRequest(pkt1,sock,tempfds,clientfds);
 							// break;
 					}else if (pkt1->type == MENU){ /// server gui lai cai lua chon cua mk 
 						choiceFunc = atoi(pkt1->text);
@@ -1220,7 +1220,7 @@ int logout(int sock, int *check){
 	}
 }
 
-void handlerChatRequest(Packet *pkt1){
+void handlerChatRequest(Packet *pkt1,int sock,fd_set tempfds, fd_set clientfds){
 	Packet *pkt2;
 						int pkt1_len = pkt1->lent;
 						char *uname;
