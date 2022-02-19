@@ -40,8 +40,10 @@ int startserver(char *port){
   /*Hàm htonl được sử dụng để chuyển đổi INADDR_ANY sang thứ tự byte mạng  */
   server_address.sin_port = htons(atoi(port));
 
+// bind socket vao localhost cong 3000
   bind(sd, (struct sockaddr *) &server_address, sizeof(server_address));
 
+// max client = 20
   /*Gọi listen để đặt sd  của socket phía máy chủ sang trạng thái nghe thụ động và đặt độ dài của hàng đợi chấp nhận thành 20 */
   listen(sd, 20);
 
@@ -71,8 +73,7 @@ int startserver(char *port){
   /*Sẵn sàng chấp nhận yêu cầu của khách hàng */
   // printf("admin: started server on '%s' at '%d'\n",
 	//  myname, myport);
-   printf("admin: started at port: '%d'\n",
-	 myport);
+   printf("admin: started at port: '%d', sd = %d\n",myport, sd);
   return(sd);
 }
 

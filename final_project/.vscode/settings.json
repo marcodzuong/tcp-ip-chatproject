@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "atomic": "c",
+        "*.tcc": "c",
+        "exception": "c",
+        "array": "c",
+        "optional": "c",
+        "numeric": "c",
+        "stdexcept": "c",
+        "type_traits": "c"
+    }
+}

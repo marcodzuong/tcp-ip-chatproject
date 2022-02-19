@@ -189,12 +189,14 @@ int main(int argc, char *argv[]){
 	int servsock;			   /* Mô tả socket máy chủ */
 	int maxsd;				   /* Số máy tối đa cho phép kết nối đến socketֵ */
 	fd_set livesdset, tempset; /* Bộ thăm dò socket*/
+	// read account info
 	readFile();	
 	if (argc != 2){
 		printf("Wrong syntax!!!\n--> Correct Syntax: ./server PortNumber\n");
 		return 0;
 	}
 	/* Khởi tạo thông tin phòng */
+	// read chat room
 	if (!initChatRooms())
 		exit(1);
 
@@ -517,7 +519,6 @@ int initChatRooms(){
 	fscanf(fp, "%d", &roomCount);
 
 	/* Phân bổ bộ nhớ cho các phongf */
-	//group = (Group *) calloc(roomCount, sizeof(Group));
 	if (!group)
 	{
 		printf("error : unable to calloc\n");
@@ -570,26 +571,8 @@ int getListUserInRoom(int sock)
 			strcat(bufrptr1,memb->name);
 
 			}
-			// bufrptr += strlen(bufrptr) + 1;
 		}
 		bufrlen = bufrptr - pktbufr;
-	// temp = findnamebysock(sock);
-	// for (memb = group[sender->grid].mems; memb; memb = memb->next)
-	// {
-	// 	/*Bỏ qua người gửi */
-	// 	// if (memb->sock == sock)
-	// 	// {			continue;}
-	// 	if (t==1){
-	// 			bufrptr1 = strdup(memb->name);
-	// 			t=0;
-	// 		} else {
-	// 			strcat(bufrptr1,"/");
-	// 		strcat(bufrptr1,memb->name);
-
-	// 		}
-	// 	// sendpkt(memb->sock, USER_TEXT, bufrlen, bufrptr1); /* Gửi tin nhắn cho các thành viên khác trong phòng trò chuyện (TCP là song công hoàn toàn) */
-	// }
-	// printf("%s",bufrptr1);
 	/* Gửi tin nhắn đến yêu cầu của khách hàng */
 	sendpkt(sock, LIST_USERGR, strlen(bufrptr1)+1, bufrptr1);
 	return (1);
@@ -897,6 +880,8 @@ int joinRoomChat(int sock, char *gname, char *username){
 	return (1);
 }
 
+
+// return user name a's socket
 int try(char *a){
 	node *temp = head;
 	while(1){
@@ -1111,25 +1096,6 @@ int kickuser(int sock, char *text){
 		}
 
 	}
-	//temp = findnamebysock(sock);
-	/* Thêm tên người gửi trc văn bản tin nhắn */
-	// bufrptr = pktbufr;
-	// strcpy(bufrptr, temp->username);
-	// strcpy(bufrptr1, temp->username);
-	// // bufrptr1 = strdup(temp->username);
-	// strcat(bufrptr1,"/");
-	// strcat(bufrptr1, text);
-	// printf("%s\n",bufrptr1);
-	// bufrptr += strlen(bufrptr) + 1;
-	// strcpy(bufrptr, text);
-	// bufrptr += strlen(bufrptr) + 1;
-	// bufrlen = bufrptr - pktbufr;
-	// /* Truyên tin nhắn đến các thành viên khác trong phòng*/
-	
-	// //printf("%d\n", sender->sock);
-	// printf("%s: %s", temp->username, text);
-	
-
 	return (1);
 }
 int sendApcept(int sock,char *text){

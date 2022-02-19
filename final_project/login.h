@@ -22,8 +22,8 @@ typedef struct Node1{
 	struct Node1 *next;
 } node1;
 
-node *head; // first node
-node1 *head1;
+node *head; // first node user
+node1 *head1; // first node room
 void addNode(char* user, char* password, char* status2, int status);
 void addNodeRoom(char* name, char *cap, char *admin);
 node *checkExist(char* user);
