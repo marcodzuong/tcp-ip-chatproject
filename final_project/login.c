@@ -7,6 +7,17 @@
 #include <arpa/inet.h>
 #include "login.h"
 
+static int intCompare(const void *p1, const void *p2)
+{
+    int int_a = * ( (int*) p1 );
+    int int_b = * ( (int*) p2 );
+
+    if ( int_a == int_b ) return 0;
+    else if ( int_a < int_b ) return -1;
+    else return 1;
+}
+
+
 
 void addNode(char* user, char* password, char *status2, int status){ // Them account vao ds lien ket
 	node *temp = (struct Node*) malloc(sizeof(struct Node));
@@ -70,16 +81,14 @@ int checkPass(char* user, char* pass){ // check xem pass nhap dung chua??
 	return 0;
 }
 
-int checkStatus(char* user){ //kiem tra trang thai account
-	node *temp = head;
-	while(temp!=NULL){
-		if(strcmp(temp->username, user) == 0){
-			return temp->status;
-		}
-		temp = temp->next;
-	}
-	return -1;
+void printIntegers(int arr[], size_t size)
+{
+    for (size_t i = 0; i < size; i++)
+        printf("%4d | ", arr[i]);
+    printf("\n");
 }
+
+
 
 int lockAccount(char* user){ // khoa account
 	node *temp = head;
@@ -125,4 +134,15 @@ void printlist(){ // in ra ds lien ket
 		printf("%s %s %d\n", temp->username, temp->pass, temp->status);
 		temp = temp->next;
 	}
+}
+
+int checkStatus(char* user){ //kiem tra trang thai account
+	node *temp = head;
+	while(temp!=NULL){
+		if(strcmp(temp->username, user) == 0){
+			return temp->status;
+		}
+		temp = temp->next;
+	}
+	return -1;
 }

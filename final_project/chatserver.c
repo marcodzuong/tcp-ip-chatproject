@@ -1,5 +1,3 @@
-/* Chatserver */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -179,17 +177,16 @@ int givemsg(int sock, char *text);
 
 int toUser(int sock, char *text);
 
-/* Gửi tin nhắn đên các thành viên khác trong phòng chat */
 int relaymsg(int sock, char *text);
 
 int repmenu(int sock, char *text);
 
 /*main*/
 int main(int argc, char *argv[]){
-	int servsock;			   /* Mô tả socket máy chủ */
-	int maxsd;				   /* Số máy tối đa cho phép kết nối đến socketֵ */
-	fd_set livesdset, tempset; /* Bộ thăm dò socket*/
-	// read account info
+	int servsock;			  
+	int maxsd;	
+	fd_set livesdset, tempset; 
+	
 	readFile();	
 	if (argc != 2){
 		printf("Wrong syntax!!!\n--> Correct Syntax: ./server PortNumber\n");
@@ -200,50 +197,31 @@ int main(int argc, char *argv[]){
 	if (!initChatRooms())
 		exit(1);
 
-	/* Chức năng xử lí tín hiệu */
-	// signal(SIGTERM, cleanup);
-	// signal(SIGINT, cleanup);
-
-	/* Sẵn sàng nhận yêu cầu */
 	servsock = startserver(argv[1]); /*Đc xác định trong chatlinker.c, Hoàn thành socket, port, và chuyển socket sag listen */
 	if (servsock == -1)
 		exit(1);
-
-	/* Khởi tạo maxsd */
 	maxsd = servsock;
 
-	/* Khởi tạo bộ thăm dò */
-	FD_ZERO(&livesdset);		  /* Khởi tạo bộ thăm dò livesdset*/
-	FD_ZERO(&tempset);			  /* Khởi tạo bộ thăm dò tempset */
-	FD_SET(servsock, &livesdset); /*Thêm sercesock vào livesdset*/
+	FD_ZERO(&livesdset);		  
+	FD_ZERO(&tempset);			
+	FD_SET(servsock, &livesdset); 
 
-	/* Xử lý yêu cầu */
 	while (1){
-		int sock; /* vòng lặp */
+		int sock; 
 
 		tempset = livesdset;
 
-		/* Yêu cầu liên kết tới socket ms*/
 		select(maxsd + 1, &tempset, NULL, NULL, NULL);
-
-		/* vòng lặp */
 		for (sock = 3; sock <= maxsd; sock++){
-			/* Nếu máy chủ lắng nghe ổ cắm, nó sẽ nhảy ra khỏi gói nhận và thực hiện kết nối chấp nhận */
 			if (sock == servsock)
 				continue;
-
-			/* Có một tin nhắn từ socket máy khách */
 			if (FD_ISSET(sock, &tempset)){
 				Packet *pkt;
 
-				/* Đọc tin nhắn */
-				pkt = recvpkt(sock); /* Hàm recvpkt được định nghĩa trong "chatlinker.c" */
+				pkt = recvpkt(sock);
 
 				if (!pkt){
-					/* Máy khách bị ngắt kết nố */
-					char *clientname; /* Tên máy khách */
-
-					/* Sử dụng hàm gethostbyaddr, getpeername để lấy tên máy khách */
+					char *clientname;
 					socklen_t len;
 					struct sockaddr_in addr;
 					len = sizeof(addr);
@@ -259,20 +237,16 @@ int main(int argc, char *argv[]){
 					printf("admin: disconnect from '%s' at '%d'\n",
 						   clientname, sock);
 
-					/* Xóa thành viên khỏi phòng trò chuyện */
 					leavegroup(sock);
 
 					close(sock);
 
-					/* Xóa sock khỏi bộ thăm dò livesdset */
 					FD_CLR(sock, &livesdset);
 				}
 				else{
-					//CHEN LOGIN VAO DAY
 
 					char *gname, *mname, *username, *pass, *name, *uname, *status;
 					char *cap;
-					/* loại hành động */
 				
 					switch (pkt->type)
 					{
@@ -287,8 +261,6 @@ int main(int argc, char *argv[]){
 						
 						name=strtok(pkt->text, "/");
 						cap= strtok(NULL,"/");
-						// name = pkt->text;
-						// cap = name + strlen(name) + 1;
 						processCreatRoom(sock, name, cap);
 						break;
 					case UPDATE:
@@ -301,9 +273,6 @@ int main(int argc, char *argv[]){
 						
 						username = strtok(pkt->text, "/");
 						pass = strtok(NULL,"/");
-						// username = pkt->text;
-						// pass = username + strlen(username) + 1;
-						// printf("%s",pass);
 						processLogIn(sock, username, pass);
 						break;
 					case LOG_OUT:
@@ -364,33 +333,24 @@ int main(int argc, char *argv[]){
 						kickuser(sock,pkt->text);
 						break;
 					}
-					
-					
-
-					/*Cấu trúc gói phát hành */
+				
 					freepkt(pkt);
 				}
 			}
 		}
 
-		struct sockaddr_in remoteaddr; /* cấu trúc địa chỉ máy khách */
+		struct sockaddr_in remoteaddr;
 		socklen_t addrlen;
 
-		/* CÓ một y/c từ 1 user mới */
 		if (FD_ISSET(servsock, &tempset))
 		{
-			int csd; /*mô tả socket được kết nối */
-
-			/* Chấp nhận yêu cầu kết nối mới */
+			int csd;
 			addrlen = sizeof remoteaddr;
 			csd = accept(servsock, (struct sockaddr *)&remoteaddr, &addrlen);
 
-			/* Kết nối thành công */
 			if (csd != -1)
 			{
 				char *clientname;
-
-				/* Nhận tên máy chủ của khách hàng bằng cách sử dụng chức năng gethostbyaddr*/
 				struct hostent *h;
 				h = gethostbyaddr((char *)&remoteaddr.sin_addr.s_addr,
 								  sizeof(struct in_addr), AF_INET);
@@ -400,14 +360,13 @@ int main(int argc, char *argv[]){
 				else
 					printf("gethostbyaddr failed\n");
 
-				/* Hiển thị tên máy chủ của máy khách và bộ mô tả ổ cắm tương ứng  */
 				printf("admin: connect from '%s' at '%d'\n",
 					   clientname, csd);
 
-				/*Thêm csd vào livesdset */
 				FD_SET(csd, &livesdset);
 
-				/*maxsd: Socket lớn nhất */
+
+
 				if (csd > maxsd)
 					maxsd = csd;
 			}
@@ -422,7 +381,7 @@ int main(int argc, char *argv[]){
 
 
 int findRoomByName(char *name){
-	int grid; /* ID phòng trò chuyện */
+	int grid;
 
 	for (grid = 0; grid < roomCount; grid++)
 	{
@@ -447,13 +406,10 @@ int findname(char*name){
 
 
 Member *findUserByName(char *name){
-	int grid; /* ID phòng*/
-	/*Vòng lặp tất cả các nhóm */
+	int grid;
 	for (grid = 0; grid < roomCount; grid++)
 	{
 		Member *memb;
-
-		/* Duyệt tất cả thành viên cho mỗi phòng  */
 		for (memb = group[grid].mems; memb; memb = memb->next)
 		{
 			if (strcmp(memb->name, name) == 0)
@@ -464,14 +420,10 @@ Member *findUserByName(char *name){
 }
 int grid1(char *name)
 {
-	int grid; /* ID phòng*/
-
-	/*Vòng lặp tất cả các nhóm */
+	int grid;
 	for (grid = 0; grid < roomCount; grid++)
 	{
 		Member *memb;
-
-		/* Duyệt tất cả thành viên cho mỗi phòng  */
 		for (memb = group[grid].mems; memb; memb = memb->next)
 		{
 			if (strcmp(memb->name, name) == 0)
@@ -482,14 +434,10 @@ int grid1(char *name)
 }
 
 Member *findUserBySocket(int sock){
-	int grid; /*ID phòng*/
-
-	/* Duyệt tất cả các phòng */
+	int grid;
 	for (grid = 0; grid < roomCount; grid++)
 	{
 		Member *memb;
-
-		/* Duyệt tất cả các thành viên */
 		for (memb = group[grid].mems; memb; memb = memb->next)
 		{
 			if (memb->sock == sock)
@@ -506,36 +454,26 @@ int initChatRooms(){
 	char cap[BUFF_SIZE];
 	int capa;
 	int grid;
-
-	/* Mở file lưu trữ thông tin chat */
 	fp = fopen("groups.txt", "r");
 	if (!fp)
 	{
 		fprintf(stderr, "error : unable to open file 'groups.txt'\n");
 		return (0);
 	}
-
-	/* Số lượng phòng */
 	fscanf(fp, "%d", &roomCount);
 
-	/* Phân bổ bộ nhớ cho các phongf */
 	if (!group)
 	{
 		printf("error : unable to calloc\n");
 		return (0);
 	}
-
-	/*Thông tin phòng trò chuyeẹn từ file */
 	for (grid = 0; grid < roomCount; grid++)
 	{
-		/* Tên phòng và số ng tối đa */
 		if (fscanf(fp, "%s %d %s", name, &capa, admin) != 3)
 		{
 			printf("error : no info on group %d\n", grid + 1);
 			return (0);
 		}
-
-		/* Lưu trữ thông tin vào cấu trúc nhóm */
 		group[grid].name = strdup(name);
 		group[grid].capa = capa;
 		group[grid].occu = 0;
@@ -555,12 +493,9 @@ int getListUserInRoom(int sock)
 	char *bufrptr,bufrptr1[MAXPKTLEN];
 	long bufrlen;
 	int t=1;
-	//char m[MAXLEN];
 	node *temp;
-	/* Nhận thông tin của thành viên qua socket */
 	sender = findUserBySocket(sock);
 	int id=grid1(sender->name);
-	// printf("%d %d",id,sock);
 	for (memb = group[id].mems; memb; memb = memb->next)
 		{
 			if (t==1){
@@ -573,7 +508,6 @@ int getListUserInRoom(int sock)
 			}
 		}
 		bufrlen = bufrptr - pktbufr;
-	/* Gửi tin nhắn đến yêu cầu của khách hàng */
 	sendpkt(sock, LIST_USERGR, strlen(bufrptr1)+1, bufrptr1);
 	return (1);
 }
@@ -600,25 +534,13 @@ int getListUserOnline(int sock)
 			strcat(bufrptr1,temp->username);
 
 			}
-			
-			// strcat(bufrptr1,"/");
-			// strcat(bufrptr1,temp->sock);
-			
-			// sprintf(bufrptr, "%s", temp->username);
+		
 			bufrptr += strlen(bufrptr) + 1;
-
-			// sprintf(bufrptr, "%s", temp->status2);
-			// bufrptr += strlen(bufrptr) + 1;
-
-			// sprintf(bufrptr, "%d", temp->sock);
-			// bufrptr += strlen(bufrptr) + 1;
 		}
 		temp = temp->next;
 		
 	}
 	bufrlen = bufrptr - pktbufr;
-	// printf("%s",bufrptr1);
-	/* Gửi tin nhắn đến yêu cầu của khách hàng */
 	sendpkt(sock, LISTUSERON, strlen(bufrptr1)+1, bufrptr1);
 	return (1);
 }
@@ -628,26 +550,11 @@ int getListRoomChat(int sock){
 	char pktbufr[MAXPKTLEN];
 	char *bufrptr,bufrptr1[MAXPKTLEN],length[MAXPKTLEN];
 	long bufrlen;
-
-	/* Mỗi phần thông tin được phân tách bằng NULL trong chuỗi */
 	bufrptr = pktbufr;
 	sprintf (length, "%d",roomCount);
 	strcpy(bufrptr1,length);
-	// strcat(bufrptr1,"/");
 	for (grid = 0; grid < roomCount; grid++)
 	{
-		// printf("%s",group[grid].name);
-		// if (grid==0){
-		// 	strcpy(bufrptr1,group[grid].name);
-		// 	// bufrptr1 = strdup(group[grid].name);
-		// 	strcat(bufrptr1,"/");
-		// 	char str[100];
-		// 	sprintf (str, "%d",group[grid].capa);
-		// 	strcat(bufrptr1,str);
-		// 	strcat(bufrptr1,"/");
-		// 	sprintf (str, "%d",group[grid].occu);
-		// 	strcat(bufrptr1,str);
-		// } else 
 		 {
 			strcat(bufrptr1,"/");
 			strcat(bufrptr1,group[grid].name);
@@ -659,26 +566,10 @@ int getListRoomChat(int sock){
 			sprintf (str, "%d",group[grid].occu);
 			strcat(bufrptr1,str);
 		}
-		// strcat(bufrptr1,"/");
-		// strcat(bufrptr1,temp->username);
-		/* Nhận tên phòng trò chuyện */
-		// sprintf(bufrptr, "%s", group[grid].name);
-		// bufrptr += strlen(bufrptr) + 1;
-
-		// /*Nhận công suất phòng trò chuyện */
-		// sprintf(bufrptr, "%d", group[grid].capa);
-		// bufrptr += strlen(bufrptr) + 1;
-
-		// /* Nhận chia sẻ phòng trò chuyện */
-		// sprintf(bufrptr, "%d", group[grid].occu);
-		// bufrptr += strlen(bufrptr) + 1;
 		
 	}
 	bufrlen = bufrptr - pktbufr;
-
-	/* Gửi tin nhắn đến yêu cầu của khách hàng */
 	sendpkt(sock, LIST_GROUPS, strlen(bufrptr1)+1, bufrptr1);
-	// sendpkt(sock, LIST_GROUPS, bufrlen, pktbufr);
 	return (1);
 }
 

@@ -15,41 +15,26 @@
 #include <unistd.h>
 #include "common.h"
 
-/*
- Chuẩn bị máy chủ cho các yêu cầu của khách hàng,
-   Trả lại chính xác mô tả tập tin ổ cắm
-   Lỗi trả về -1
-*/
+struct bin_tree {
+int data;
+struct bin_tree * right, * left;
+};
+
+typedef struct bin_tree node;
+
 int startserver(char *port){
-  int     sd;      /* socket mô tả */
-  int     myport;  /* Cổng máy chủ */
-  const char *  myname;  /* Tên đầy đủ của localhosst  */
-
-  /*
-	Gọi hàm socket để tạo mô tả socket TCP
-  */
+  int     sd;      
+  int     myport;  
+  const char *  myname; 
   sd = socket(PF_INET, SOCK_STREAM, 0);
-
-  /*
-   Gọi bind để gán địa chỉ cục bộ cho socket 
-  */
 
   struct sockaddr_in server_address;
   server_address.sin_family = AF_INET;
   server_address.sin_addr.s_addr = htonl(INADDR_ANY); 
-  /*Hàm htonl được sử dụng để chuyển đổi INADDR_ANY sang thứ tự byte mạng  */
   server_address.sin_port = htons(atoi(port));
 
-// bind socket vao localhost cong 3000
   bind(sd, (struct sockaddr *) &server_address, sizeof(server_address));
-
-// max client = 20
-  /*Gọi listen để đặt sd  của socket phía máy chủ sang trạng thái nghe thụ động và đặt độ dài của hàng đợi chấp nhận thành 20 */
   listen(sd, 20);
-
-  /*
-    Gọi getsockname, gethostname và gethostbyname để xác định tên máy chủ cục bộ và số cổng máy chủ.
-  */
 
   char hostname[MAXNAMELEN];
 
@@ -63,39 +48,21 @@ int startserver(char *port){
 
   getsockname(sd, (struct sockaddr *) &server_address, &len);
 
-  // myname = h->h_name;
   myport = ntohs(server_address.sin_port);
   if(myport!=atoi(port)){
     printf("error: server already exist!\n");
     exit(0);
   }
-
-  /*Sẵn sàng chấp nhận yêu cầu của khách hàng */
-  // printf("admin: started server on '%s' at '%d'\n",
-	//  myname, myport);
    printf("admin: started at port: '%d', sd = %d\n",myport, sd);
   return(sd);
 }
 
-/*
-  Kết nối đến máy chủ, trả về socket đúng.
-  Thất bại trả về  -1
-*/
 int hooktoserver(char* port, char* addr){
-  int sd;                 
-	/*
-	Gọi socket để tạo kết nối TCP
-	*/
-
+  int sd;     
 	sd = socket(AF_INET, SOCK_STREAM, 0);
-	
-	/*
-  Gọi gethostbyname () và connect () để kết nối với cổng 'servport' của 'servhost'
-	*/
-	struct hostent *hostinfo;
-	struct sockaddr_in address; // thong tin dia chi server
 
-	// hostinfo = gethostbyname(servhost); /*Tên máy chủ */
+	struct hostent *hostinfo;
+	struct sockaddr_in address; 
 	address.sin_addr.s_addr = inet_addr(addr);
 	address.sin_family = AF_INET;
 	address.sin_port = htons(atoi(port));
@@ -104,19 +71,16 @@ int hooktoserver(char* port, char* addr){
 		perror("connecting");
 		exit(1);
 	}
-
-	/* Kết nối thành công */
 	printf("admin: connected to server at port: '%s'\n",
 	port);
 	return(sd);
 }
 
-/* Đọc thông tin về một ổ cắm từ kernel */
 int readn(int sd, char *buf, int n){
   int     toberead;
   char *  ptr;
 
-  toberead = n; // so byte can ghi
+  toberead = n; 
   ptr = buf;
   while (toberead > 0) {
     int byteread;
@@ -134,31 +98,30 @@ int readn(int sd, char *buf, int n){
   return(1);
 }
 
-/* Nhận gói */
+static int stringCompare(const void *p1, const void *p2)
+{
+    return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
 Packet *recvpkt(int sd){
   Packet *pkt;
-
-  /* Bộ nhớ đc phân bố rông */
   pkt = (Packet *) calloc(1, sizeof(Packet));
   if (!pkt) {
     fprintf(stderr, "error : unable to calloc\n");
     return(NULL);
   }
 
-  /* Đọc loại tin nhắn */
   if (!readn(sd, (char *) &pkt->type, sizeof(pkt->type))) {
     free(pkt);
     return(NULL);
   }
 
-  /* Đọc độ dài tin nhắn */
   if (!readn(sd, (char *) &pkt->lent, sizeof(pkt->lent))) {
     free(pkt);
     return(NULL);
   }
   pkt->lent = ntohl(pkt->lent);
 
-  /* Phân bổ không gian cho nội dung tin nhắn */
   if (pkt->lent > 0) {
     pkt->text = (char *) malloc(pkt->lent);
     if (!pkt) {
@@ -166,7 +129,6 @@ Packet *recvpkt(int sd){
       return(NULL);
     }
 
-    /*Đọc tin nhắn văn bản */
     if (!readn(sd, pkt->text, pkt->lent)) {
       freepkt(pkt);
       return(NULL);
@@ -175,25 +137,113 @@ Packet *recvpkt(int sd){
   return(pkt);
 }
 
-/* Gửi gói */
+void printStrings(char *arr[], size_t size)
+{
+    for (size_t i = 0; i < size; i++)
+        printf("%10s | ", arr[i]);
+    printf("\n");
+}
+
 int sendpkt(int sd, char typ, long len, char *buf){
   char tmp[8];
   long siz;
 
-  /* Viết loại và độ dài của gói vào socket */
   bcopy(&typ, tmp, sizeof(typ));
-  siz = htonl(len); // chuyển từ byte máy chủ sag byte mạng
+  siz = htonl(len); 
   bcopy((char *) &siz, tmp+sizeof(typ), sizeof(len));
   write(sd, tmp, sizeof(typ) + sizeof(len));
 
-  /*Viêt tin nhắn văn bản vào socket*/
   if (len > 0)
-    write(sd, buf, len); //buff: nội dung văn bản 
+    write(sd, buf, len); 
   return(1);
 }
 
-/*Giải phóng không gian bộ nhớ bị chiếm dụng bởi các gói */
 void freepkt(Packet *pkt){
   free(pkt->text);
   free(pkt);
+}
+
+void insert(node ** tree, int val)
+{
+    node *temp = NULL;
+    if(!(*tree))
+    {
+        temp = (node *)malloc(sizeof(node));
+        temp->left = temp->right = NULL;
+        temp->data = val;
+        *tree = temp;
+        return;
+    }
+
+    if(val < (*tree)->data)
+    {
+        insert(&(*tree)->left, val);
+    }
+    else if(val > (*tree)->data)
+    {
+        insert(&(*tree)->right, val);
+    }
+
+}
+
+void print_preorder(node * tree)
+{
+    if (tree)
+    {
+        printf("%d\n",tree->data);
+        print_preorder(tree->left);
+        print_preorder(tree->right);
+    }
+
+}
+
+void print_inorder(node * tree)
+{
+    if (tree)
+    {
+        print_inorder(tree->left);
+        printf("%d\n",tree->data);
+        print_inorder(tree->right);
+    }
+}
+
+void print_postorder(node * tree)
+{
+    if (tree)
+    {
+        print_postorder(tree->left);
+        print_postorder(tree->right);
+        printf("%d\n",tree->data);
+    }
+}
+
+void deltree(node * tree)
+{
+    if (tree)
+    {
+        deltree(tree->left);
+        deltree(tree->right);
+        free(tree);
+    }
+}
+
+node* search(node ** tree, int val)
+{
+    if(!(*tree))
+    {
+        return NULL;
+    }
+
+    if(val < (*tree)->data)
+    {
+        search(&((*tree)->left), val);
+    }
+    else if(val > (*tree)->data)
+    {
+        search(&((*tree)->right), val);
+    }
+    else if(val == (*tree)->data)
+    {
+        return *tree;
+    }
 }
